@@ -132,60 +132,6 @@ export const favPics = [
 ];
 
 
-// ---- Home page content ----
-
-export const stack = ["TypeScript", "Next.js", "React", "Tailwind", "Python", "JavaScript", "HTML & CSS", "Motion", "Git"];
-
-// Real numbers from github.com/peter-racz-rhr (public repos, Nov 2026)
-export const stats = [
-  { value: "11", label: "public repos" },
-  { value: "6", label: "started in Oct 2026" },
-  { value: "4", label: "languages" },
-  { value: "'24", label: "first commit" },
-];
-
-export const services = [
-  {
-    title: "Web apps",
-    body: "Lorem ipsum dolor sit amet. Next.js and TypeScript apps, from first sketch to something people can click.",
-    icon: "browser",
-  },
-  {
-    title: "Desktop tools",
-    body: "Consectetur adipiscing elit. Small Python apps that make a Linux desktop do what I want.",
-    icon: "terminal",
-  },
-  {
-    title: "Quick experiments",
-    body: "Sed do eiusmod tempor. One-evening builds to try an idea, an animation or a new library.",
-    icon: "flask",
-  },
-] as const;
-
-// Repo creation dates from GitHub; one-liners are filler to rewrite
-export const timeline = [
-  { date: "2026-10-31", name: "ante-app", lang: "TypeScript", note: "The big one I'm building right now." },
-  { date: "2026-10-20", name: "e5nterempaperos", lang: "HTML", note: "Lorem ipsum dolor sit amet." },
-  { date: "2026-10-13", name: "magyarotyesz-demo", lang: "TypeScript", note: "Consectetur adipiscing elit." },
-  { date: "2026-10-08", name: "e5st", lang: "TypeScript", note: "Sed do eiusmod tempor." },
-  { date: "2026-10-06", name: "naplemente", lang: "TypeScript", note: "Colors picked from a sunset." },
-  { date: "2026-09-26", name: "mint_desktop_apps", lang: "Python", note: "Desktop apps for Linux Mint." },
-  { date: "2026-06-16", name: "german-app", lang: "JavaScript", note: "Helping myself learn German." },
-  { date: "2026-05-24", name: "lwk", lang: "HTML", note: "Lorem ipsum, still going." },
-  { date: "2026-04-11", name: "studyspace", lang: "HTML", note: "Ut enim ad minim veniam." },
-  { date: "2024-06-18", name: "intro", lang: "HTML", note: "Where it all started." },
-];
-
-export const now = [
-  { label: "Building", value: "ante-app" },
-  { label: "Learning", value: "Lorem ipsum dolor" },
-  { label: "Reading", value: "Adipiscing elit" },
-];
-
-export function formatMonth(iso: string) {
-  return new Date(iso + "T00:00:00").toLocaleDateString("en-GB", { month: "short", year: "numeric" });
-}
-
 // "On repeat" fallback tracks, shown until live Spotify data loads (and in local dev)
 export const tracks = [
   { title: "Lorem Ipsum", artist: "Dolor Sit", album: "Amet", length: "3:24", cover: img("cover-1", 600, 600), color: "#48284a" },
