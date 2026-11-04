@@ -7,6 +7,7 @@
 import { motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IconCamera, IconCameraOff, IconHandFinger } from "@tabler/icons-react";
+import { ShoreWaves } from "@/components/shore-waves";
 import { LiquidGlass } from "@/components/ui/liquid-glass";
 import { WebcamPixelGrid } from "@/components/ui/webcam-pixel-grid";
 import { site } from "@/lib/data";
@@ -58,6 +59,7 @@ export function Hero() {
         onWebcamError={onError}
       />
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,transparent_30%,var(--color-canvas)_90%)]" />
+      <ShoreWaves className="-z-[5]" />
 
       <header className="flex items-start justify-between px-5 pt-5 sm:px-8 sm:pt-7">
         <span className="font-mono text-xs font-medium tracking-widest text-fg uppercase">{site.handle}</span>

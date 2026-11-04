@@ -1,110 +1,83 @@
 "use client";
 
-// Picture show-off after Skiper UI's skiper6 (hover members): a row of
-// thumbnails, a giant name that re-spells itself on hover, and a preview
-// that trails the cursor. Tap works on touch screens.
+// Picture show-off: a big photo next to a stacked list of names. Hover (or tap)
+// a name and the new photo wipes up over the old one. Started from Skiper UI's
+// skiper6 idea; the photo gets its own space so it never covers the text.
 
-import { AnimatePresence, motion, useMotionValue, useSpring } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Photo } from "@/lib/data";
 
-export function HoverGallery({
-  photos,
-  defaultName = "Gallery",
-  className,
-}: {
-  photos: Photo[];
-  defaultName?: string;
-  className?: string;
-}) {
-  const [active, setActive] = useState<number | null>(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const sx = useSpring(x, { stiffness: 300, damping: 30, mass: 0.5 });
-  const sy = useSpring(y, { stiffness: 300, damping: 30, mass: 0.5 });
+const EASE = [0.77, 0, 0.175, 1] as const;
 
-  const current = active === null ? null : photos[active];
-  const label = current?.name ?? defaultName;
+export function HoverGallery({ photos, className }: { photos: Photo[]; className?: string }) {
+  const [active, setActive] = useState(0);
+  const current = photos[active];
 
   return (
     <div
-      className={cn("relative flex flex-col items-center gap-10 overflow-hidden py-16", className)}
-      onPointerMove={(e) => {
-        const r = e.currentTarget.getBoundingClientRect();
-        x.set(e.clientX - r.left);
-        y.set(e.clientY - r.top);
-      }}
-      onPointerLeave={(e) => e.pointerType === "mouse" && setActive(null)}
+      className={cn(
+        "mx-auto grid w-full max-w-6xl gap-8 px-5 sm:px-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-center lg:gap-14",
+        className,
+      )}
     >
-      <ul className="relative z-10 flex flex-wrap justify-center gap-2 sm:gap-3">
-        {photos.map((p, i) => (
-          <li key={p.name}>
-            <button
-              type="button"
-              aria-label={p.name}
-              onPointerEnter={(e) => e.pointerType === "mouse" && setActive(i)}
-              onClick={() => setActive((a) => (a === i ? null : i))}
-              className={cn(
-                "block size-12 overflow-hidden rounded-lg ring-1 ring-fg/10 transition-[transform,filter] duration-200 ease-out active:scale-95 sm:size-16",
-                active !== null && active !== i ? "grayscale brightness-50" : "",
-                active === i && "-translate-y-1 ring-plum",
-              )}
-            >
-              <img src={p.image} alt="" className="size-full object-cover" draggable={false} />
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      <div className="relative z-0 h-[1em] text-[clamp(2rem,10.5vw,9rem)] leading-none">
-        <AnimatePresence mode="popLayout" initial={false}>
-          <motion.h2
-            key={label}
-            className="flex font-display tracking-tight text-fg uppercase"
-            aria-live="polite"
-          >
-            {label.split("").map((ch, i) => (
-              <span key={i} className="inline-block overflow-hidden pb-[0.05em]">
-                <motion.span
-                  className="inline-block"
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0, transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1], delay: i * 0.025 } }}
-                  exit={{ y: "-100%", transition: { duration: 0.25, ease: [0.23, 1, 0.32, 1], delay: i * 0.015 } }}
-                >
-                  {ch === " " ? " " : ch}
-                </motion.span>
-              </span>
-            ))}
-          </motion.h2>
-        </AnimatePresence>
-      </div>
-
-      <p className="h-5 font-mono text-xs tracking-widest text-fg/50 uppercase">
-        {current ? current.caption : "hover or tap a picture"}
-      </p>
-
-      {/* cursor-trailing preview, mouse only */}
-      <motion.div
-        aria-hidden
-        style={{ x: sx, y: sy }}
-        className="pointer-events-none absolute top-0 left-0 z-20 hidden [@media(hover:hover)]:block"
-      >
-        <AnimatePresence>
-          {current && (
+      {/* Photo */}
+      <figure className="flex flex-col gap-3">
+        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[2rem] bg-lilac/40 sm:aspect-[5/4] lg:aspect-[4/5]">
+          <AnimatePresence initial={false}>
             <motion.img
               key={current.name}
               src={current.image}
-              alt=""
-              initial={{ opacity: 0, scale: 0.9, rotate: -4 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
-              className="absolute top-6 left-6 h-56 w-44 max-w-none rounded-xl object-cover shadow-2xl ring-1 ring-fg/10"
+              alt={current.name}
+              draggable={false}
+              className="absolute inset-0 size-full object-cover"
+              initial={{ clipPath: "inset(100% 0 0 0)", scale: 1.08 }}
+              animate={{ clipPath: "inset(0% 0 0 0)", scale: 1 }}
+              exit={{ opacity: 1, transition: { duration: 0, delay: 0.7 } }}
+              transition={{ duration: 0.7, ease: EASE }}
             />
-          )}
-        </AnimatePresence>
-      </motion.div>
+          </AnimatePresence>
+          <span className="absolute top-4 left-4 rounded-full bg-canvas/85 px-3 py-1 font-mono text-[11px] tracking-widest text-fg uppercase backdrop-blur">
+            {String(active + 1).padStart(2, "0")} / {String(photos.length).padStart(2, "0")}
+          </span>
+        </div>
+        <figcaption className="font-mono text-xs tracking-widest text-fg/60 uppercase" aria-live="polite">
+          {current.caption}
+        </figcaption>
+      </figure>
+
+      {/* Names */}
+      <ul className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] lg:flex-col lg:gap-0 lg:overflow-visible lg:pb-0">
+        {photos.map((p, i) => {
+          const on = i === active;
+          return (
+            <li key={p.name} className="shrink-0">
+              <button
+                type="button"
+                onPointerEnter={(e) => e.pointerType === "mouse" && setActive(i)}
+                onFocus={() => setActive(i)}
+                onClick={() => setActive(i)}
+                aria-pressed={on}
+                className={cn(
+                  "group flex items-center gap-3 rounded-full border px-4 py-2 text-left transition-colors duration-200 lg:w-full lg:rounded-none lg:border-0 lg:border-b lg:border-fg/10 lg:px-0 lg:py-3",
+                  on ? "border-fg bg-fg text-canvas lg:bg-transparent lg:text-fg" : "border-fg/15 text-fg/35 hover:text-fg/70",
+                )}
+              >
+                <span
+                  className={cn(
+                    "hidden size-3 shrink-0 rounded-full bg-plum transition-transform duration-200 lg:block",
+                    on ? "scale-100" : "scale-0",
+                  )}
+                />
+                <span className="font-display text-sm whitespace-nowrap uppercase lg:text-[clamp(1.6rem,3.2vw,2.75rem)] lg:leading-none">
+                  {p.name}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

@@ -17,7 +17,7 @@ export default function Home() {
             Pictures
           </SectionLabel>
         </div>
-        <HoverGallery photos={photos} defaultName="Moments" className="py-8" />
+        <HoverGallery photos={photos} className="py-8" />
       </section>
 
       <OnRepeat />
