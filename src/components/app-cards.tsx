@@ -2,9 +2,19 @@
 
 // App showcase after Skiper UI's skiper23 (minimal card expand): colored
 // tiles that grow into a detail card with a shared layout animation.
-// Click outside or press Escape to collapse.
+// Click outside or press Escape to collapse. On hover (mouse only) a card tilts
+// toward the cursor with a glare, its title letters hop, a big ghost icon spins
+// in and the dots stretch into "Open".
 
-import { AnimatePresence, motion } from "motion/react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionTemplate,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+  useTransform,
+} from "motion/react";
 import { useEffect, useState } from "react";
 import {
   IconArrowUpRight,
@@ -41,6 +51,177 @@ function inkFor(hex: string) {
   return lum > 0.6 ? DARK : LIGHT;
 }
 
+const STATUS_DOT: Record<Project["status"], string> = {
+  building: "animate-pulse",
+  shipped: "",
+  paused: "opacity-40",
+};
+
+function Card({
+  project: p,
+  index,
+  placeholder,
+  onOpen,
+}: {
+  project: Project;
+  index: number;
+  placeholder: boolean;
+  onOpen: () => void;
+}) {
+  const Icon = ICONS[p.icon];
+  const ink = inkFor(p.color);
+  const reduce = useReducedMotion();
+  const [hover, setHover] = useState(false);
+
+  // pointer position over the card, 0–1 on each axis
+  const mx = useMotionValue(0.5);
+  const my = useMotionValue(0.5);
+  const tilt = { stiffness: 220, damping: 18, mass: 0.6 };
+  const rotateX = useSpring(useTransform(my, [0, 1], [9, -9]), tilt);
+  const rotateY = useSpring(useTransform(mx, [0, 1], [-11, 11]), tilt);
+  const glareX = useTransform(mx, (v) => `${v * 100}%`);
+  const glareY = useTransform(my, (v) => `${v * 100}%`);
+  const glare = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgb(255 255 255 / 0.28), transparent 55%)`;
+
+  const onMove = (e: React.PointerEvent<HTMLElement>) => {
+    if (e.pointerType !== "mouse") return;
+    const r = e.currentTarget.getBoundingClientRect();
+    mx.set((e.clientX - r.left) / r.width);
+    my.set((e.clientY - r.top) / r.height);
+    setHover(true);
+  };
+  const onLeave = () => {
+    mx.set(0.5);
+    my.set(0.5);
+    setHover(false);
+  };
+
+  return (
+    <motion.li
+      className="aspect-[5/3] [perspective:900px] sm:aspect-[4/3]"
+      data-edit={`projects.${index}`}
+      initial={reduce ? false : { opacity: 0, y: 48, rotate: index % 2 ? 3 : -3 }}
+      whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ type: "spring", duration: 0.8, bounce: 0.35, delay: (index % 3) * 0.08 }}
+    >
+      {placeholder ? (
+        <div className="size-full rounded-3xl bg-fg/5" />
+      ) : (
+        <motion.div
+          className="size-full rounded-3xl"
+          style={reduce ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
+          animate={{
+            y: hover ? -8 : 0,
+            boxShadow: hover ? `0 34px 50px -26px ${p.color}` : "0 0px 0px 0px rgb(0 0 0 / 0)",
+          }}
+          transition={{ type: "spring", duration: 0.45, bounce: 0.3 }}
+          onPointerMove={onMove}
+          onPointerLeave={onLeave}
+        >
+          <motion.button
+            type="button"
+            layoutId={`card-${p.slug}`}
+            transition={SPRING}
+            onClick={() => {
+              onLeave();
+              onOpen();
+            }}
+            aria-label={`${p.name}: ${p.blurb}`}
+            style={{ backgroundColor: p.color, color: ink, borderRadius: 24 }}
+            className="group relative flex size-full flex-col justify-between overflow-hidden p-4 text-left active:scale-[0.98] sm:p-5"
+          >
+            {/* big ghost icon that spins in from the corner */}
+            <motion.span
+              aria-hidden
+              className="pointer-events-none absolute -right-10 -bottom-12"
+              initial={false}
+              animate={
+                hover
+                  ? { x: 0, y: 0, rotate: -14, scale: 1, opacity: 0.16 }
+                  : { x: 28, y: 28, rotate: 12, scale: 0.75, opacity: 0.07 }
+              }
+              transition={{ type: "spring", duration: 0.7, bounce: 0.35 }}
+            >
+              <Icon className="size-48 sm:size-56" stroke={1.2} />
+            </motion.span>
+
+            {/* glare that follows the cursor */}
+            <motion.span
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{ background: glare }}
+              animate={{ opacity: hover ? 1 : 0 }}
+              transition={{ duration: 0.25 }}
+            />
+
+            <div className="relative flex w-full items-start justify-between gap-2">
+              {/* outer span carries the open-card layout move; inner one wiggles on hover */}
+              <motion.span layoutId={`icon-${p.slug}`} transition={SPRING} className="block">
+                <motion.span
+                  className="block"
+                  initial={false}
+                  animate={hover && !reduce ? { rotate: [0, -16, 12, 0], scale: [1, 1.18, 1.1, 1.12] } : { rotate: 0, scale: 1 }}
+                  transition={hover && !reduce ? { duration: 0.6, ease: "easeInOut" } : { duration: 0.25 }}
+                >
+                  <Icon className="size-7 sm:size-8" stroke={1.8} />
+                </motion.span>
+              </motion.span>
+              <div className="flex items-center gap-2">
+                <motion.span
+                  className="flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10px] tracking-widest uppercase"
+                  style={{ backgroundColor: ink, color: p.color }}
+                  initial={false}
+                  animate={{ rotate: hover ? 4 : -5, y: hover ? -2 : 0 }}
+                  transition={{ type: "spring", duration: 0.5, bounce: 0.55 }}
+                >
+                  <span className={cn("size-1.5 rounded-full bg-current", STATUS_DOT[p.status])} />
+                  {p.status}
+                </motion.span>
+                <span className="flex h-7 items-center rounded-full bg-current/10 px-1.5 transition-colors duration-150 group-hover:bg-current/20">
+                  <IconDots className="size-4 transition-transform duration-300 group-hover:rotate-90" />
+                  <span className="max-w-0 overflow-hidden text-xs font-semibold whitespace-nowrap opacity-0 transition-[max-width,opacity,padding] duration-300 ease-out group-hover:max-w-16 group-hover:px-1 group-hover:opacity-100">
+                    Open ↗
+                  </span>
+                </span>
+              </div>
+            </div>
+
+            <div className="relative">
+              <motion.h3
+                layoutId={`title-${p.slug}`}
+                transition={SPRING}
+                className="font-display text-xl leading-tight uppercase sm:text-2xl"
+              >
+                <BouncyText text={p.name} play={hover && !reduce} />
+              </motion.h3>
+              <p className="mt-1.5 text-sm opacity-70">{p.blurb}</p>
+            </div>
+          </motion.button>
+        </motion.div>
+      )}
+    </motion.li>
+  );
+}
+
+/* Letters hop one after another while `play` is on */
+function BouncyText({ text, play }: { text: string; play: boolean }) {
+  return (
+    <span aria-hidden className="inline-flex flex-wrap">
+      {text.split("").map((ch, i) => (
+        <motion.span
+          key={i}
+          className="inline-block"
+          animate={play ? { y: [0, -9, 0] } : { y: 0 }}
+          transition={play ? { duration: 0.42, ease: [0.33, 1, 0.68, 1], delay: i * 0.035 } : { duration: 0.2 }}
+        >
+          {ch === " " ? " " : ch}
+        </motion.span>
+      ))}
+    </span>
+  );
+}
+
 export function AppCards({ projects, className }: { projects: Project[]; className?: string }) {
   const [active, setActive] = useState<Project | null>(null);
 
@@ -54,44 +235,9 @@ export function AppCards({ projects, className }: { projects: Project[]; classNa
   return (
     <>
       <ul className={cn("grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3", className)}>
-        {projects.map((p, i) => {
-          const Icon = ICONS[p.icon];
-          return (
-            <li key={p.slug} className="aspect-[5/3] sm:aspect-[4/3]" data-edit={`projects.${i}`}>
-              {active?.slug === p.slug ? (
-                <div className="size-full rounded-3xl bg-fg/5" />
-              ) : (
-                <motion.button
-                  type="button"
-                  layoutId={`card-${p.slug}`}
-                  transition={SPRING}
-                  onClick={() => setActive(p)}
-                  style={{ backgroundColor: p.color, color: inkFor(p.color), borderRadius: 24 }}
-                  className="group relative flex size-full flex-col justify-between p-4 text-left active:scale-[0.98] sm:p-5"
-                >
-                  <div className="flex w-full items-start justify-between">
-                    <motion.span layoutId={`icon-${p.slug}`} transition={SPRING}>
-                      <Icon className="size-7 sm:size-8" stroke={1.8} />
-                    </motion.span>
-                    <span className="flex size-7 items-center justify-center rounded-full bg-current/10 transition-colors duration-150 group-hover:bg-current/20">
-                      <IconDots className="size-4" />
-                    </span>
-                  </div>
-                  <div>
-                    <motion.h3
-                      layoutId={`title-${p.slug}`}
-                      transition={SPRING}
-                      className="font-display text-xl leading-tight uppercase sm:text-2xl"
-                    >
-                      {p.name}
-                    </motion.h3>
-                    <p className="mt-1.5 text-sm opacity-70">{p.blurb}</p>
-                  </div>
-                </motion.button>
-              )}
-            </li>
-          );
-        })}
+        {projects.map((p, i) => (
+          <Card key={p.slug} project={p} index={i} placeholder={active?.slug === p.slug} onOpen={() => setActive(p)} />
+        ))}
       </ul>
 
       <AnimatePresence>

@@ -21,13 +21,14 @@ Keep the client secret private. Don't paste it into chats or commit it to GitHub
 
 ## 2. Get your refresh token (on your own computer)
 
-In a terminal, in this project folder (PowerShell):
+In a terminal, in this project folder:
 
-```powershell
-$env:SPOTIFY_CLIENT_ID="paste-client-id"; $env:SPOTIFY_CLIENT_SECRET="paste-client-secret"; node scripts/spotify-token.mjs
+```bash
+node scripts/spotify-token.mjs
 ```
 
-Open http://127.0.0.1:8888/ in your browser, log in to Spotify and click **Agree**.
+It asks for the **Client ID**, then the **Client secret** (shown as `*` while you type).
+Then open http://127.0.0.1:8888/ in your browser, log in to Spotify and click **Agree**.
 The terminal prints your refresh token. Copy it.
 
 ## 3. Deploy with the function
@@ -39,7 +40,8 @@ Deploy from GitHub instead (it also redeploys on every push):
 2. In Netlify: **Add new site → Import an existing project → GitHub**, pick the repo.
    The settings come from `netlify.toml` (build `npm run build`, publish `out`).
 3. Before or after the first deploy, go to **Site configuration → Environment variables**
-   and add:
+   and add these three. Tick **Contains secret values** for each and keep **Functions** in
+   the scopes:
 
    | Key                     | Value                    |
    | ----------------------- | ------------------------ |
@@ -60,7 +62,7 @@ Spotify can't be reached, and in local development.
 ## Notes
 
 - Spotify updates "top tracks" about once a day. "Listening right now" is checked on every
-  visit, cached for about a minute.
+  visit, cached for about 15 seconds.
 - To change the period: in `netlify/functions/spotify.mjs`, `time_range=short_term` is about
   4 weeks; `medium_term` is about 6 months, `long_term` about a year.
 - If you ever reset the client secret in the Spotify dashboard, run step 2 again and update

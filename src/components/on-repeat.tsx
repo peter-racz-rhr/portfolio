@@ -5,11 +5,14 @@
 // Spotify data from /api/spotify (a Netlify function); falls back to the
 // hand-picked `tracks` in the site content when that isn't available (local dev,
 // or inside the admin editor, where the hand-picked list is what you edit).
+// The card takes its color from the album cover. While a song is playing the
+// bar shows how far into it you are, and the list refreshes when it ends.
 
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { IconArrowUpRight, IconBrandSpotify } from "@tabler/icons-react";
 import { T, useContent } from "@/components/content-provider";
+import { useCoverColor } from "@/lib/cover-color";
 import { cn } from "@/lib/utils";
 
 const EASE = [0.23, 1, 0.32, 1] as const;
@@ -24,10 +27,15 @@ type Track = {
   color: string;
   url?: string;
   live?: boolean;
+  durationMs?: number;
+  /** wall-clock time (ms) the playing song started, for the live progress bar */
+  startedAt?: number;
 };
 
-type LiveTrack = Omit<Track, "color" | "cover"> & { cover: string | null; isPlaying?: boolean };
-type SpotifyResponse = { tracks: LiveTrack[]; nowPlaying: LiveTrack | null };
+type LiveTrack = Omit<Track, "color" | "cover"> & { cover: string | null; isPlaying?: boolean; progressMs?: number };
+type SpotifyResponse = { tracks: LiveTrack[]; nowPlaying: LiveTrack | null; updatedAt?: string };
+
+const REFRESH_MS = 30_000;
 
 function fromSpotify(data: SpotifyResponse, fallbackCover: string): Track[] {
   const list: LiveTrack[] = [...data.tracks];
@@ -35,7 +43,9 @@ function fromSpotify(data: SpotifyResponse, fallbackCover: string): Track[] {
   if (now) {
     const i = list.findIndex((t) => t.url === now.url);
     if (i >= 0) list.splice(i, 1);
-    list.unshift({ ...now, live: true });
+    // the answer may be a few seconds old (cached), so work from when Spotify was asked
+    const askedAt = data.updatedAt ? Date.parse(data.updatedAt) : Date.now();
+    list.unshift({ ...now, live: true, startedAt: askedAt - (now.progressMs ?? 0) } as LiveTrack);
   }
   return list.slice(0, 6).map((t, i) => ({
     ...t,
@@ -51,7 +61,16 @@ export function OnRepeat() {
   // hand-picked songs don't flash up and get swapped out.
   const [loading, setLoading] = useState(!editing);
   const [active, setActive] = useState(0);
+  const [refresh, setRefresh] = useState(0);
   const fallbackCover = content.tracks[0]?.cover ?? content.site.heroImage;
+  const askAgain = useCallback(() => setRefresh((r) => r + 1), []);
+
+  // check Spotify again every so often (skips, pauses, new songs)
+  useEffect(() => {
+    if (editing) return;
+    const id = setInterval(() => !document.hidden && askAgain(), REFRESH_MS);
+    return () => clearInterval(id);
+  }, [editing, askAgain]);
 
   useEffect(() => {
     if (editing) return;
@@ -63,7 +82,8 @@ export function OnRepeat() {
       .then((data) => {
         if (!data.tracks?.length) return;
         setLiveList(fromSpotify(data, fallbackCover));
-        setActive(0);
+        // first load, or the playing song was showing: show what's playing now
+        setActive((a) => (refresh === 0 || a === 0 ? 0 : a));
       })
       .catch(() => {})
       .finally(() => {
@@ -76,7 +96,11 @@ export function OnRepeat() {
       clearTimeout(timeout);
       controller.abort();
     };
-  }, [editing, fallbackCover]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `refresh` only re-triggers the request
+  }, [editing, fallbackCover, refresh]);
+
+  const current = (!editing && liveList ? liveList : content.tracks)[active] ?? content.tracks[0];
+  const background = useCoverColor(resolve(current?.cover ?? fallbackCover), current?.color ?? "#48284a");
 
   if (loading && !editing) return <OnRepeatSkeleton />;
 
@@ -89,8 +113,8 @@ export function OnRepeat() {
   return (
     <section className="mx-auto w-full max-w-6xl px-5 sm:px-8">
       <motion.div
-        animate={{ backgroundColor: t.color }}
-        transition={{ duration: 0.6, ease: EASE }}
+        animate={{ backgroundColor: background }}
+        transition={{ duration: 0.8, ease: EASE }}
         className="grid gap-10 overflow-hidden rounded-[2.5rem] p-6 text-canvas sm:p-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14"
       >
         {/* Sleeve + record */}
@@ -195,15 +219,19 @@ export function OnRepeat() {
           </ol>
 
           <div className="mt-auto pt-8">
-            <div className="flex justify-between font-mono text-[11px] tracking-wider uppercase opacity-60">
-              <span className="truncate">
-                {t.live ? "Playing now" : "Now spinning"} · {t.title}
-              </span>
-              <span className="tabular-nums">{t.length}</span>
-            </div>
-            <div className="mt-2 h-1 overflow-hidden rounded-full bg-canvas/15">
-              <div key={active} className="progress h-full origin-left rounded-full bg-canvas" />
-            </div>
+            {t.live && t.startedAt && t.durationMs ? (
+              <LiveProgress key={t.url} track={t} onEnded={askAgain} />
+            ) : (
+              <>
+                <div className="flex justify-between font-mono text-[11px] tracking-wider uppercase opacity-60">
+                  <span className="truncate">Now spinning · {t.title}</span>
+                  <span className="tabular-nums">{t.length}</span>
+                </div>
+                <div className="mt-2 h-1 overflow-hidden rounded-full bg-canvas/15">
+                  <div key={active} className="progress h-full origin-left rounded-full bg-canvas" />
+                </div>
+              </>
+            )}
             {t.url && (
               <a
                 href={t.url}
@@ -218,6 +246,51 @@ export function OnRepeat() {
         </div>
       </motion.div>
     </section>
+  );
+}
+
+const clock = (ms: number) => `${Math.floor(ms / 60000)}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, "0")}`;
+
+/* Real position in the playing song; asks Spotify again shortly after it ends */
+function LiveProgress({ track, onEnded }: { track: Track; onEnded: () => void }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 500);
+    return () => clearInterval(id);
+  }, []);
+
+  const duration = track.durationMs!;
+  const elapsed = Math.min(Math.max(now - track.startedAt!, 0), duration);
+  const ended = elapsed >= duration;
+
+  useEffect(() => {
+    if (!ended) return;
+    const t = setTimeout(onEnded, 2000);
+    return () => clearTimeout(t);
+  }, [ended, onEnded]);
+
+  return (
+    <>
+      <div className="flex justify-between font-mono text-[11px] tracking-wider uppercase opacity-60">
+        <span className="truncate">Playing now · {track.title}</span>
+        <span className="tabular-nums">
+          {clock(elapsed)} / {track.length}
+        </span>
+      </div>
+      <div
+        className="mt-2 h-1 overflow-hidden rounded-full bg-canvas/15"
+        role="progressbar"
+        aria-label="Song progress"
+        aria-valuemin={0}
+        aria-valuemax={Math.round(duration / 1000)}
+        aria-valuenow={Math.round(elapsed / 1000)}
+      >
+        <div
+          className="h-full origin-left rounded-full bg-canvas transition-transform duration-500 ease-linear"
+          style={{ transform: `scaleX(${elapsed / duration})` }}
+        />
+      </div>
+    </>
   );
 }
 

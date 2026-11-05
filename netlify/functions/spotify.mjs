@@ -64,9 +64,9 @@ export default async () => {
       { tracks, nowPlaying, updatedAt: new Date().toISOString() },
       {
         headers: {
-          // browsers re-ask every visit; Netlify's CDN reuses the answer for a minute
+          // browsers re-ask every visit; Netlify's CDN reuses the answer for 15 seconds
           "Cache-Control": "public, max-age=0, must-revalidate",
-          "Netlify-CDN-Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+          "Netlify-CDN-Cache-Control": "public, s-maxage=15, stale-while-revalidate=60",
         },
       },
     );

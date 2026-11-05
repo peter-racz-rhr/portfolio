@@ -1,18 +1,42 @@
 // One-time helper: logs you in to Spotify and prints the refresh token for Netlify.
 //
-//   SPOTIFY_CLIENT_ID=... SPOTIFY_CLIENT_SECRET=... node scripts/spotify-token.mjs
-//   (PowerShell: $env:SPOTIFY_CLIENT_ID="..."; $env:SPOTIFY_CLIENT_SECRET="..."; node scripts/spotify-token.mjs)
+//   node scripts/spotify-token.mjs
+//
+// It asks for your app's Client ID and Client secret (the secret is hidden as
+// you type). You can also pass them as SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET.
 //
 // Your Spotify app must list this exact Redirect URI: http://127.0.0.1:8888/callback
 // Everything runs on your own computer; nothing is sent anywhere except Spotify.
 
 import { createServer } from "node:http";
 import { randomBytes } from "node:crypto";
+import { createInterface } from "node:readline";
 
-const id = process.env.SPOTIFY_CLIENT_ID;
-const secret = process.env.SPOTIFY_CLIENT_SECRET;
+// One buffered reader for both questions, so pasted input is never lost between them
+const rl = createInterface({ input: process.stdin, output: process.stdout, terminal: process.stdin.isTTY });
+const lines = rl[Symbol.asyncIterator]();
+const echo = rl._writeToOutput.bind(rl);
+let muted = false;
+// while muted, show a * for every typed character instead of the character
+rl._writeToOutput = (s) => {
+  if (!muted) echo(s);
+  else if (!/[\r\n]/.test(s)) rl.output.write("*".repeat(s.length));
+};
+
+async function ask(question, { hidden = false } = {}) {
+  process.stdout.write(question);
+  muted = hidden;
+  const { value } = await lines.next();
+  muted = false;
+  if (hidden) process.stdout.write("\n");
+  return (value ?? "").trim();
+}
+
+const id = process.env.SPOTIFY_CLIENT_ID || (await ask("Spotify Client ID: "));
+const secret = process.env.SPOTIFY_CLIENT_SECRET || (await ask("Spotify Client secret (hidden): ", { hidden: true }));
+rl.close();
 if (!id || !secret) {
-  console.error("Set SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET first (see SPOTIFY_SETUP.md).");
+  console.error("Both the Client ID and the Client secret are needed (see SPOTIFY_SETUP.md).");
   process.exit(1);
 }
 
