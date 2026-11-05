@@ -100,7 +100,7 @@ function DockMenu({
       transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
       style={{ transformOrigin: align === "right" ? "bottom right" : "bottom center" }}
       className={cn(
-        "absolute bottom-full z-10 mb-3 flex w-52 flex-col gap-0.5 rounded-2xl p-1.5",
+        "absolute bottom-full z-10 mb-3 flex w-52 flex-col gap-0.5 rounded-3xl p-1.5",
         align === "right" ? "right-0" : "left-1/2 -translate-x-1/2",
         shell,
         "bg-canvas/95",
@@ -111,7 +111,7 @@ function DockMenu({
           key={item.title}
           item={item}
           onClick={onClose}
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-fg/80 transition-colors duration-150 hover:bg-fg/[0.07] hover:text-fg"
+          className="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-fg/80 transition-colors duration-150 hover:bg-fg/[0.07] hover:text-fg"
         >
           <span className="size-5 shrink-0">{item.icon}</span>
           {item.title}
@@ -126,11 +126,11 @@ const FloatingDockMobile = ({ items }: { items: DockItem[] }) => {
   const pathname = usePathname();
 
   return (
-    <nav className={cn("relative flex items-center gap-1 rounded-2xl p-1.5 md:hidden", shell)}>
+    <nav className={cn("relative flex items-center gap-1 rounded-3xl p-1.5 md:hidden", shell)}>
       {items.map((item) => {
         const active = isActive(pathname, item.href);
         const cls = cn(
-          "relative flex size-12 items-center justify-center rounded-xl text-fg/60 transition-colors duration-150 active:scale-95",
+          "relative flex size-12 items-center justify-center rounded-2xl text-fg/60 transition-colors duration-150 active:scale-95",
           (active || open === item.title) && "bg-fg/10 text-fg",
         );
         if (item.menu)
@@ -168,7 +168,7 @@ const FloatingDockDesktop = ({ items }: { items: DockItem[] }) => {
     <motion.nav
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
-      className={cn("mx-auto hidden h-16 items-end gap-3 rounded-2xl px-3 pb-3 md:flex", shell)}
+      className={cn("mx-auto hidden h-16 items-end gap-3 rounded-3xl px-3 pb-3 md:flex", shell)}
     >
       {items.map((item) => (
         <IconContainer mouseX={mouseX} key={item.title} item={item} active={isActive(pathname, item.href)} />
@@ -221,7 +221,7 @@ function IconContainer({
             animate={{ opacity: 1, y: 0, x: "-50%" }}
             exit={{ opacity: 0, y: 2, x: "-50%", transition: { duration: 0.1 } }}
             transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
-            className="absolute -top-9 left-1/2 w-fit rounded-md border border-fg/10 bg-canvas px-2 py-1 font-mono text-[11px] whitespace-pre text-fg"
+            className="absolute -top-9 left-1/2 w-fit rounded-2xl border border-fg/10 bg-canvas px-2 py-1 font-mono text-[11px] whitespace-pre text-fg"
           >
             {item.title}
           </motion.div>

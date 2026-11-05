@@ -241,7 +241,7 @@ export function Editor({ onLoggedOut }: { onLoggedOut: () => void }) {
           className="edit-canvas min-w-0 flex-1 overflow-y-auto"
           aria-label={`${current.name} page preview`}
         >
-          <style>{selected ? `.edit-canvas [data-edit="${selected}"]{outline:3px solid var(--color-plum);outline-offset:4px;border-radius:1.25rem}` : ""}</style>
+          <style>{selected ? `.edit-canvas [data-edit="${selected}"]{outline:3px solid var(--color-plum);outline-offset:4px;border-radius:24px}` : ""}</style>
           <div className="min-h-full bg-canvas pb-24">
             <ContentProvider value={providerValue}>
               <current.View key={page} />

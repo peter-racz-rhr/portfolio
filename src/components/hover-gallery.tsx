@@ -27,7 +27,7 @@ export function HoverGallery({ photos, className }: { photos: Photo[]; className
     >
       {/* Photo */}
       <figure className="flex flex-col gap-3" data-edit={`photos.${Math.min(active, photos.length - 1)}`}>
-        <div className="skeleton relative aspect-[4/5] w-full overflow-hidden rounded-[2rem] sm:aspect-[5/4] lg:aspect-[4/5]">
+        <div className="skeleton relative aspect-[4/5] w-full overflow-hidden rounded-3xl sm:aspect-[5/4] lg:aspect-[4/5]">
           <AnimatePresence initial={false}>
             <motion.img
               key={`${active}-${current.image}`}

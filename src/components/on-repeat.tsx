@@ -115,7 +115,7 @@ export function OnRepeat() {
       <motion.div
         animate={{ backgroundColor: background }}
         transition={{ duration: 0.8, ease: EASE }}
-        className="grid gap-10 overflow-hidden rounded-[2.5rem] p-6 text-canvas sm:p-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14"
+        className="grid gap-10 overflow-hidden rounded-3xl p-6 text-canvas sm:p-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14"
       >
         {/* Sleeve + record */}
         <div className="relative flex items-center py-4">
@@ -148,7 +148,7 @@ export function OnRepeat() {
                 animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                 exit={{ opacity: 0, transition: { duration: 0.15 } }}
                 transition={{ duration: 0.4, ease: EASE }}
-                className="skeleton-dark relative z-10 size-full rounded-lg object-cover shadow-[0_25px_50px_-20px_rgba(0,0,0,0.7)] ring-1 ring-canvas/15"
+                className="skeleton-dark relative z-10 size-full rounded-2xl object-cover shadow-[0_25px_50px_-20px_rgba(0,0,0,0.7)] ring-1 ring-canvas/15"
                 draggable={false}
               />
             </AnimatePresence>
@@ -190,7 +190,7 @@ export function OnRepeat() {
                     onClick={() => setActive(i)}
                     aria-pressed={on}
                     className={cn(
-                      "grid w-full grid-cols-[1.75rem_1fr_auto] items-center gap-4 rounded-xl px-3 py-3 text-left transition-colors duration-150",
+                      "grid w-full grid-cols-[1.75rem_1fr_auto] items-center gap-4 rounded-2xl px-3 py-3 text-left transition-colors duration-150",
                       on ? "bg-canvas/15" : "hover:bg-canvas/5",
                     )}
                   >
@@ -298,20 +298,20 @@ function LiveProgress({ track, onEnded }: { track: Track; onEnded: () => void })
 function OnRepeatSkeleton() {
   return (
     <section className="mx-auto w-full max-w-6xl px-5 sm:px-8" aria-busy="true" aria-label="Loading music">
-      <div className="grid gap-10 overflow-hidden rounded-[2.5rem] bg-plum p-6 text-canvas sm:p-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
+      <div className="grid gap-10 overflow-hidden rounded-3xl bg-plum p-6 text-canvas sm:p-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
         <div className="relative flex items-center py-4">
           <div className="relative aspect-square w-[58%] max-w-[300px]">
             <div className="skeleton-dark absolute inset-[3%] translate-x-[52%] rounded-full" />
-            <div className="skeleton-dark relative z-10 size-full rounded-lg bg-plum" />
+            <div className="skeleton-dark relative z-10 size-full rounded-2xl bg-plum" />
           </div>
         </div>
         <div className="flex min-w-0 flex-col">
           <div className="skeleton-dark h-3 w-36 rounded-full" />
-          <div className="skeleton-dark mt-4 h-10 w-3/4 rounded-xl sm:h-14" />
+          <div className="skeleton-dark mt-4 h-10 w-3/4 rounded-2xl sm:h-14" />
           <div className="mt-8 flex flex-col gap-2">
             {Array.from({ length: 5 }, (_, i) => (
               <div key={i} className="grid grid-cols-[1.75rem_1fr_auto] items-center gap-4 px-3 py-3">
-                <div className="skeleton-dark size-4 rounded" />
+                <div className="skeleton-dark size-4 rounded-2xl" />
                 <div className="space-y-2">
                   <div className="skeleton-dark h-3.5 rounded-full" style={{ width: `${70 - i * 8}%` }} />
                   <div className="skeleton-dark h-3 w-1/3 rounded-full" />

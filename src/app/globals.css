@@ -43,8 +43,8 @@
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-2xl: 16px; /* site rule: boxes inside rounded boxes */
+  --radius-3xl: 24px; /* site rule: outer rounded boxes */
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
@@ -225,7 +225,7 @@ html.has-custom-cursor :is(input, textarea, [contenteditable="true"]) {
 .edit-canvas [data-edit]:hover {
   outline: 2px dashed color-mix(in srgb, var(--color-plum) 55%, transparent);
   outline-offset: 4px;
-  border-radius: 1.25rem;
+  border-radius: 24px;
 }
 .edit-text {
   cursor: text;

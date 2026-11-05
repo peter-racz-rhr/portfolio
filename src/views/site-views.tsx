@@ -79,7 +79,7 @@ export function GalleryView() {
               src={resolve(p.image)}
               alt={p.name}
               loading="lazy"
-              className="skeleton size-full rounded-xl object-cover ring-1 ring-fg/10"
+              className="skeleton size-full rounded-3xl object-cover ring-1 ring-fg/10"
             />
           </figure>
         ))}
@@ -122,12 +122,12 @@ export function AboutView() {
               rotate: `${pic.rotate}deg`,
             }}
           >
-            <DraggableCardBody className="min-h-0 w-[var(--card-w)] cursor-grab bg-white p-3 text-fg shadow-xl">
+            <DraggableCardBody className="min-h-0 w-[var(--card-w)] cursor-grab rounded-3xl bg-white p-3 text-fg shadow-xl">
               <img
                 src={resolve(pic.image)}
                 alt={pic.title}
                 draggable={false}
-                className="skeleton pointer-events-none relative z-10 aspect-[4/5] w-full rounded object-cover"
+                className="skeleton pointer-events-none relative z-10 aspect-[4/5] w-full rounded-2xl object-cover"
               />
               <h3 className="mt-3 text-center font-display text-sm uppercase">{pic.title}</h3>
             </DraggableCardBody>

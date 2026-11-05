@@ -267,7 +267,7 @@ function Expanded({ project: p, onClose }: { project: Project; onClose: () => vo
     <motion.div
       layoutId={`card-${p.slug}`}
       transition={SPRING}
-      style={{ backgroundColor: p.color, color: inkFor(p.color), borderRadius: 32 }}
+      style={{ backgroundColor: p.color, color: inkFor(p.color), borderRadius: 24 }}
       className="pointer-events-auto w-full max-w-lg overflow-hidden p-6 sm:p-8"
       role="dialog"
       aria-label={p.name}
