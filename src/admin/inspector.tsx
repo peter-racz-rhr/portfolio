@@ -336,7 +336,7 @@ function ImageField({ id, editor, path, value }: { id: string; editor: Editor; p
         onClick={() => fileRef.current?.click()}
         className="group relative block aspect-[4/3] w-full overflow-hidden rounded-xl border border-fg/10 bg-fg/5"
       >
-        <img src={editor.resolve(value)} alt="" className="size-full object-cover" />
+        <img src={editor.resolve(value)} alt="" className="skeleton size-full object-cover" />
         <span className="absolute inset-0 flex items-center justify-center gap-2 bg-fg/50 text-sm font-semibold text-canvas opacity-0 transition-opacity duration-150 group-hover:opacity-100">
           <IconPhotoUp className="size-5" /> {busy ? "Preparing…" : "Replace picture"}
         </span>

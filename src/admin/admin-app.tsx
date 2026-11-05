@@ -15,7 +15,7 @@ export function AdminApp() {
     isLoggedIn().then((ok) => setState(ok ? "in" : "out"));
   }, []);
 
-  if (state === "checking") return <div className="grid h-dvh place-items-center text-sm text-fg/50">Checking…</div>;
+  if (state === "checking") return <EditorSkeleton />;
   if (state === "out") return <Login onDone={() => setState("in")} />;
   return <Editor onLoggedOut={() => setState("out")} />;
 }
@@ -67,5 +67,34 @@ function Login({ onDone }: { onDone: () => void }) {
         </button>
       </form>
     </main>
+  );
+}
+
+/* Rough outline of the editor while the login is checked */
+function EditorSkeleton() {
+  return (
+    <div className="flex h-dvh flex-col bg-[#ece8e3]" aria-busy="true" aria-label="Loading editor">
+      <div className="flex items-center gap-3 border-b border-fg/10 bg-white px-4 py-3">
+        <div className="skeleton h-4 w-16 rounded-full" />
+        <div className="skeleton ml-auto h-8 w-24 rounded-lg" />
+        <div className="skeleton h-8 w-20 rounded-lg" />
+      </div>
+      <div className="flex min-h-0 flex-1">
+        <div className="hidden w-64 flex-col gap-2 border-r border-fg/10 bg-white p-4 md:flex">
+          {Array.from({ length: 9 }, (_, i) => (
+            <div key={i} className="skeleton h-7 rounded-lg" style={{ width: `${90 - (i % 3) * 18}%` }} />
+          ))}
+        </div>
+        <div className="flex-1 space-y-6 bg-canvas p-8">
+          <div className="skeleton h-[45%] rounded-[2rem]" />
+          <div className="skeleton h-6 w-2/5 rounded-full" />
+          <div className="grid grid-cols-3 gap-4">
+            <div className="skeleton aspect-[4/3] rounded-3xl" />
+            <div className="skeleton aspect-[4/3] rounded-3xl" />
+            <div className="skeleton aspect-[4/3] rounded-3xl" />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

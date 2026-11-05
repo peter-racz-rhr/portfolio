@@ -47,24 +47,38 @@ function fromSpotify(data: SpotifyResponse, fallbackCover: string): Track[] {
 export function OnRepeat() {
   const { content, editing, resolve } = useContent();
   const [liveList, setLiveList] = useState<Track[] | null>(null);
+  // Public site waits (briefly) for Spotify before showing anything, so the
+  // hand-picked songs don't flash up and get swapped out.
+  const [loading, setLoading] = useState(!editing);
   const [active, setActive] = useState(0);
   const fallbackCover = content.tracks[0]?.cover ?? content.site.heroImage;
 
   useEffect(() => {
     if (editing) return;
-    let cancelled = false;
-    fetch("/api/spotify")
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    let disposed = false;
+    fetch("/api/spotify", { signal: controller.signal })
       .then((r) => (r.ok ? (r.json() as Promise<SpotifyResponse>) : Promise.reject()))
       .then((data) => {
-        if (cancelled || !data.tracks?.length) return;
+        if (!data.tracks?.length) return;
         setLiveList(fromSpotify(data, fallbackCover));
         setActive(0);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        clearTimeout(timeout);
+        // live songs, or the hand-picked ones if Spotify was slow or failed
+        if (!disposed) setLoading(false);
+      });
     return () => {
-      cancelled = true;
+      disposed = true;
+      clearTimeout(timeout);
+      controller.abort();
     };
   }, [editing, fallbackCover]);
+
+  if (loading && !editing) return <OnRepeatSkeleton />;
 
   const list: Track[] = !editing && liveList ? liveList : content.tracks;
   if (!list.length) return null;
@@ -94,7 +108,7 @@ export function OnRepeat() {
                   <img
                     src={resolve(t.cover)}
                     alt=""
-                    className="absolute inset-[31%] size-[38%] rounded-full object-cover"
+                    className="skeleton-dark absolute inset-[31%] size-[38%] rounded-full object-cover"
                     draggable={false}
                   />
                   <span className="absolute top-1/2 left-1/2 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-canvas" />
@@ -110,7 +124,7 @@ export function OnRepeat() {
                 animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                 exit={{ opacity: 0, transition: { duration: 0.15 } }}
                 transition={{ duration: 0.4, ease: EASE }}
-                className="relative z-10 size-full rounded-lg object-cover shadow-[0_25px_50px_-20px_rgba(0,0,0,0.7)] ring-1 ring-canvas/15"
+                className="skeleton-dark relative z-10 size-full rounded-lg object-cover shadow-[0_25px_50px_-20px_rgba(0,0,0,0.7)] ring-1 ring-canvas/15"
                 draggable={false}
               />
             </AnimatePresence>
@@ -203,6 +217,41 @@ export function OnRepeat() {
           </div>
         </div>
       </motion.div>
+    </section>
+  );
+}
+
+/* Same shape as the real card, so nothing jumps when the songs arrive */
+function OnRepeatSkeleton() {
+  return (
+    <section className="mx-auto w-full max-w-6xl px-5 sm:px-8" aria-busy="true" aria-label="Loading music">
+      <div className="grid gap-10 overflow-hidden rounded-[2.5rem] bg-plum p-6 text-canvas sm:p-10 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
+        <div className="relative flex items-center py-4">
+          <div className="relative aspect-square w-[58%] max-w-[300px]">
+            <div className="skeleton-dark absolute inset-[3%] translate-x-[52%] rounded-full" />
+            <div className="skeleton-dark relative z-10 size-full rounded-lg bg-plum" />
+          </div>
+        </div>
+        <div className="flex min-w-0 flex-col">
+          <div className="skeleton-dark h-3 w-36 rounded-full" />
+          <div className="skeleton-dark mt-4 h-10 w-3/4 rounded-xl sm:h-14" />
+          <div className="mt-8 flex flex-col gap-2">
+            {Array.from({ length: 5 }, (_, i) => (
+              <div key={i} className="grid grid-cols-[1.75rem_1fr_auto] items-center gap-4 px-3 py-3">
+                <div className="skeleton-dark size-4 rounded" />
+                <div className="space-y-2">
+                  <div className="skeleton-dark h-3.5 rounded-full" style={{ width: `${70 - i * 8}%` }} />
+                  <div className="skeleton-dark h-3 w-1/3 rounded-full" />
+                </div>
+                <div className="skeleton-dark h-3 w-8 rounded-full" />
+              </div>
+            ))}
+          </div>
+          <div className="mt-auto pt-8">
+            <div className="skeleton-dark h-1 rounded-full" />
+          </div>
+        </div>
+      </div>
     </section>
   );
 }

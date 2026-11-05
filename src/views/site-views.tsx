@@ -74,8 +74,13 @@ export function GalleryView() {
       <HoverGallery photos={photos} />
       <div className="mx-auto mt-16 grid max-w-6xl grid-cols-2 gap-3 px-5 sm:grid-cols-3 sm:px-8">
         {photos.map((p, i) => (
-          <figure key={`${i}-${p.name}`} className={i % 5 === 0 ? "row-span-2" : ""} data-edit={`photos.${i}`}>
-            <img src={resolve(p.image)} alt={p.name} className="size-full rounded-xl object-cover ring-1 ring-fg/10" />
+          <figure key={`${i}-${p.name}`} className={i % 5 === 0 ? "row-span-2" : "aspect-[4/5]"} data-edit={`photos.${i}`}>
+            <img
+              src={resolve(p.image)}
+              alt={p.name}
+              loading="lazy"
+              className="skeleton size-full rounded-xl object-cover ring-1 ring-fg/10"
+            />
           </figure>
         ))}
       </div>
@@ -122,7 +127,7 @@ export function AboutView() {
                 src={resolve(pic.image)}
                 alt={pic.title}
                 draggable={false}
-                className="pointer-events-none relative z-10 aspect-[4/5] w-full rounded object-cover"
+                className="skeleton pointer-events-none relative z-10 aspect-[4/5] w-full rounded object-cover"
               />
               <h3 className="mt-3 text-center font-display text-sm uppercase">{pic.title}</h3>
             </DraggableCardBody>
