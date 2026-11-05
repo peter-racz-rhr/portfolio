@@ -3,13 +3,14 @@
 // "On repeat": an album sleeve with a vinyl sliding out and spinning, next to
 // a track list. Hover (or tap) a track and the record swaps to it. Shows live
 // Spotify data from /api/spotify (a Netlify function); falls back to the
-// hand-picked `tracks` in data.ts when that isn't available (e.g. local dev).
+// hand-picked `tracks` in the site content when that isn't available (local dev,
+// or inside the admin editor, where the hand-picked list is what you edit).
 
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { IconArrowUpRight, IconBrandSpotify } from "@tabler/icons-react";
+import { T, useContent } from "@/components/content-provider";
 import { cn } from "@/lib/utils";
-import { site, tracks as fallbackTracks } from "@/lib/data";
 
 const EASE = [0.23, 1, 0.32, 1] as const;
 const PALETTE = ["#48284a", "#7c4a79", "#1b1419", "#5b3a5d", "#8a5a85", "#2e1d2f"];
@@ -28,9 +29,7 @@ type Track = {
 type LiveTrack = Omit<Track, "color" | "cover"> & { cover: string | null; isPlaying?: boolean };
 type SpotifyResponse = { tracks: LiveTrack[]; nowPlaying: LiveTrack | null };
 
-const FALLBACK_COVER = fallbackTracks[0].cover;
-
-function fromSpotify(data: SpotifyResponse): Track[] {
+function fromSpotify(data: SpotifyResponse, fallbackCover: string): Track[] {
   const list: LiveTrack[] = [...data.tracks];
   const now = data.nowPlaying?.isPlaying ? data.nowPlaying : null;
   if (now) {
@@ -40,35 +39,38 @@ function fromSpotify(data: SpotifyResponse): Track[] {
   }
   return list.slice(0, 6).map((t, i) => ({
     ...t,
-    cover: t.cover ?? FALLBACK_COVER,
+    cover: t.cover ?? fallbackCover,
     color: PALETTE[i % PALETTE.length],
   }));
 }
 
 export function OnRepeat() {
-  const [list, setList] = useState<Track[]>(fallbackTracks);
-  const [source, setSource] = useState<"fallback" | "live">("fallback");
+  const { content, editing, resolve } = useContent();
+  const [liveList, setLiveList] = useState<Track[] | null>(null);
   const [active, setActive] = useState(0);
+  const fallbackCover = content.tracks[0]?.cover ?? content.site.heroImage;
 
   useEffect(() => {
+    if (editing) return;
     let cancelled = false;
     fetch("/api/spotify")
       .then((r) => (r.ok ? (r.json() as Promise<SpotifyResponse>) : Promise.reject()))
       .then((data) => {
         if (cancelled || !data.tracks?.length) return;
-        setList(fromSpotify(data));
-        setSource("live");
+        setLiveList(fromSpotify(data, fallbackCover));
         setActive(0);
       })
       .catch(() => {});
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [editing, fallbackCover]);
 
+  const list: Track[] = !editing && liveList ? liveList : content.tracks;
+  if (!list.length) return null;
   const t = list[active] ?? list[0];
   const listeningNow = list[0]?.live;
-  const eyebrow = listeningNow ? "Listening right now" : source === "live" ? "My top tracks this month" : "What I listen to";
+  const liveLabel = listeningNow ? "Listening right now" : liveList && !editing ? "My top tracks this month" : null;
 
   return (
     <section className="mx-auto w-full max-w-6xl px-5 sm:px-8">
@@ -90,7 +92,7 @@ export function OnRepeat() {
               >
                 <div className="vinyl size-full rounded-full shadow-[0_20px_40px_-15px_rgba(0,0,0,0.6)]">
                   <img
-                    src={t.cover}
+                    src={resolve(t.cover)}
                     alt=""
                     className="absolute inset-[31%] size-[38%] rounded-full object-cover"
                     draggable={false}
@@ -102,7 +104,7 @@ export function OnRepeat() {
             <AnimatePresence initial={false} mode="popLayout">
               <motion.img
                 key={active}
-                src={t.cover}
+                src={resolve(t.cover)}
                 alt={`${t.album} cover`}
                 initial={{ opacity: 0, scale: 0.96, filter: "blur(6px)" }}
                 animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
@@ -125,10 +127,10 @@ export function OnRepeat() {
                   <span className="relative inline-flex size-2 rounded-full bg-canvas" />
                 </span>
               )}
-              {eyebrow}
+              {liveLabel ?? <T path="music.eyebrow" />}
             </p>
             <a
-              href={site.spotify}
+              href={content.site.spotify}
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-1.5 rounded-full bg-canvas/10 px-3 py-1.5 text-xs transition-colors duration-150 hover:bg-canvas/20"
@@ -136,13 +138,13 @@ export function OnRepeat() {
               <IconBrandSpotify className="size-4" /> Spotify <IconArrowUpRight className="size-3.5" />
             </a>
           </div>
-          <h2 className="mt-3 font-display text-4xl leading-none uppercase sm:text-6xl">On repeat</h2>
+          <T path="music.title" as="h2" className="mt-3 block font-display text-4xl leading-none uppercase sm:text-6xl" />
 
           <ol className="mt-8 flex flex-col">
             {list.map((tr, i) => {
               const on = i === active;
               return (
-                <li key={`${tr.title}-${tr.artist}`} className="relative">
+                <li key={`${i}-${tr.title}`} className="relative" data-edit={liveList && !editing ? undefined : `tracks.${i}`}>
                   <button
                     type="button"
                     onPointerEnter={(e) => e.pointerType === "mouse" && setActive(i)}

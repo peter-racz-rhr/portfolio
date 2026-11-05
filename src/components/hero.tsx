@@ -3,20 +3,22 @@
 // Home hero: Aceternity's webcam pixel grid behind a giant name. It pixelates
 // the visitor's camera (asked for on load), falling back to the hero photo with
 // blocks that lift around the cursor. A draggable liquid-glass lens bends whatever is behind.
+// Inside the admin editor the camera stays off and the texts are editable.
 
 import { motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IconCamera, IconCameraOff, IconHandFinger } from "@tabler/icons-react";
+import { T, useContent } from "@/components/content-provider";
 import { ShoreWaves } from "@/components/shore-waves";
 import { LiquidGlass } from "@/components/ui/liquid-glass";
 import { WebcamPixelGrid } from "@/components/ui/webcam-pixel-grid";
-import { site } from "@/lib/data";
 
 type Cam = "off" | "starting" | "on" | "denied";
 
 export function Hero() {
+  const { content, editing, resolve } = useContent();
   const bounds = useRef<HTMLElement>(null);
-  const [cam, setCam] = useState<Cam>("starting");
+  const [cam, setCam] = useState<Cam>(editing ? "off" : "starting");
   const [narrow, setNarrow] = useState(false);
 
   useEffect(() => {
@@ -32,9 +34,9 @@ export function Hero() {
 
   const camLabel = {
     off: "Turn on camera",
-    starting: "Asking for cameraâ€¦",
-    on: "Camera on Â· turn off",
-    denied: "Camera blocked Â· try again",
+    starting: "Asking for camera…",
+    on: "Camera on · turn off",
+    denied: "Camera blocked · try again",
   }[cam];
 
   return (
@@ -42,7 +44,7 @@ export function Hero() {
       <WebcamPixelGrid
         className="absolute inset-0 -z-20"
         cameraOn={cam === "starting" || cam === "on"}
-        fallbackImage="/hero.jpg"
+        fallbackImage={resolve(content.site.heroImage)}
         gridCols={narrow ? 26 : 64}
         gridRows={narrow ? 46 : 40}
         colorMode="duotone"
@@ -62,7 +64,7 @@ export function Hero() {
       <ShoreWaves className="-z-[5]" />
 
       <header className="flex items-start justify-between px-5 pt-5 sm:px-8 sm:pt-7">
-        <span className="font-mono text-xs font-medium tracking-widest text-fg uppercase">{site.handle}</span>
+        <T path="site.handle" className="font-mono text-xs font-medium tracking-widest text-fg uppercase" />
         <div className="flex flex-col items-end gap-1.5">
           <button
             type="button"
@@ -81,20 +83,19 @@ export function Hero() {
         </div>
       </header>
 
-      <div className="pointer-events-none relative flex flex-1 flex-col justify-center px-4 sm:px-8">
+      <div className={`${editing ? "" : "pointer-events-none"} relative flex flex-1 flex-col justify-center px-4 sm:px-8`}>
         <motion.h1
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.23, 1, 0.32, 1], delay: 0.2 }}
           className="font-display text-[18vw] leading-[0.92] tracking-tight text-fg uppercase select-none sm:text-[clamp(4rem,15vw,15rem)]"
         >
-          Peter
-          <br />
-          <span className="text-plum">Racz</span>
+          <T path="hero.line1" className="block" />{" "}
+          <T path="hero.line2" className="block text-plum" />
         </motion.h1>
 
         <motion.div
-          drag
+          drag={!editing}
           dragConstraints={bounds}
           dragElastic={0.15}
           dragMomentum
@@ -102,7 +103,7 @@ export function Hero() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: 0.8 }}
-          className="pointer-events-auto absolute top-[18%] right-[8%] z-10 cursor-grab touch-none active:cursor-grabbing sm:top-[22%] sm:right-[14%]"
+          className={`${editing ? "pointer-events-none" : "pointer-events-auto cursor-grab active:cursor-grabbing"} absolute top-[18%] right-[8%] z-10 touch-none sm:top-[22%] sm:right-[14%]`}
         >
           <LiquidGlass
             radius={999}
@@ -122,13 +123,13 @@ export function Hero() {
       </div>
 
       <div className="flex flex-col gap-4 px-5 pb-32 sm:flex-row sm:items-end sm:justify-between sm:px-8 sm:pb-36">
-        <p className="max-w-sm text-lg leading-snug text-fg/80">{site.tagline}</p>
+        <T path="site.tagline" as="p" className="max-w-sm text-lg leading-snug text-fg/80" />
         <LiquidGlass radius={999} bevelDepth={10} scale={30} aberration={6} className="self-start sm:self-auto" contentClassName="flex items-center gap-2 px-4 py-2">
           <span className="relative flex size-2">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-plum opacity-75" />
             <span className="relative inline-flex size-2 rounded-full bg-plum" />
           </span>
-          <span className="text-xs text-fg sm:text-sm">building ante-app</span>
+          <T path="site.status" className="text-xs text-fg sm:text-sm" />
         </LiquidGlass>
       </div>
     </section>

@@ -217,3 +217,26 @@ html.has-custom-cursor :is(input, textarea, [contenteditable="true"]) {
     animation: none;
   }
 }
+
+/* admin editor: hover/focus hints on editable things */
+.edit-canvas [data-edit] {
+  cursor: pointer;
+}
+.edit-canvas [data-edit]:hover {
+  outline: 2px dashed color-mix(in srgb, var(--color-plum) 55%, transparent);
+  outline-offset: 4px;
+  border-radius: 1.25rem;
+}
+.edit-text {
+  cursor: text;
+  border-radius: 0.15em;
+}
+.edit-text:hover {
+  outline: 1.5px dashed color-mix(in srgb, var(--color-plum) 60%, transparent);
+  outline-offset: 3px;
+}
+.edit-text:focus {
+  outline: 2px solid var(--color-plum);
+  outline-offset: 3px;
+  background: color-mix(in srgb, var(--color-plum) 7%, transparent);
+}

@@ -19,7 +19,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
-import type { Project } from "@/lib/data";
+import type { Project } from "@/lib/content";
 
 const ICONS = {
   sparkles: IconSparkles,
@@ -54,10 +54,10 @@ export function AppCards({ projects, className }: { projects: Project[]; classNa
   return (
     <>
       <ul className={cn("grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3", className)}>
-        {projects.map((p) => {
+        {projects.map((p, i) => {
           const Icon = ICONS[p.icon];
           return (
-            <li key={p.slug} className="aspect-[5/3] sm:aspect-[4/3]">
+            <li key={p.slug} className="aspect-[5/3] sm:aspect-[4/3]" data-edit={`projects.${i}`}>
               {active?.slug === p.slug ? (
                 <div className="size-full rounded-3xl bg-fg/5" />
               ) : (

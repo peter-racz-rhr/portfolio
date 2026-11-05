@@ -1,9 +1,13 @@
+"use client";
+
 import { IconArrowUpRight } from "@tabler/icons-react";
+import { T, useContent } from "@/components/content-provider";
 import { CopyEmail } from "@/components/copy-email";
-import { site } from "@/lib/data";
 
 /* Closing contact block */
 export function SayHi() {
+  const { content } = useContent();
+  const { site } = content;
   const links = [
     { label: "GitHub", href: site.github },
     { label: "Instagram", href: site.instagram },
@@ -12,14 +16,12 @@ export function SayHi() {
   return (
     <section className="mx-auto w-full max-w-6xl px-5 sm:px-8">
       <div className="rounded-[2.5rem] bg-fg px-6 py-12 text-canvas sm:px-12 sm:py-16">
-        <p className="font-mono text-xs tracking-widest text-lilac uppercase">Got an idea?</p>
+        <T path="contact.eyebrow" as="p" className="block font-mono text-xs tracking-widest text-lilac uppercase" />
         <h2 className="mt-4 font-display text-[clamp(2.5rem,9vw,7.5rem)] leading-[0.9] uppercase">
-          Say <span className="text-lilac">hi</span>
+          <T path="contact.title" /> <T path="contact.titleAccent" className="text-lilac" />
         </h2>
-        <p className="mt-6 max-w-md text-lg opacity-75">
-          Lorem ipsum dolor sit amet. Want to build something together, or just talk apps? Drop me a line.
-        </p>
-        <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <T path="contact.body" as="p" multiline className="mt-6 block max-w-md text-lg opacity-75" />
+        <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" data-edit="site">
           <CopyEmail email={site.email} />
           <div className="flex flex-wrap gap-2">
             {links.map((l) => (

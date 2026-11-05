@@ -7,13 +7,16 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import type { Photo } from "@/lib/data";
+import { useContent } from "@/components/content-provider";
+import type { Photo } from "@/lib/content";
 
 const EASE = [0.77, 0, 0.175, 1] as const;
 
 export function HoverGallery({ photos, className }: { photos: Photo[]; className?: string }) {
+  const { resolve } = useContent();
   const [active, setActive] = useState(0);
-  const current = photos[active];
+  const current = photos[active] ?? photos[0];
+  if (!current) return null;
 
   return (
     <div
@@ -23,12 +26,12 @@ export function HoverGallery({ photos, className }: { photos: Photo[]; className
       )}
     >
       {/* Photo */}
-      <figure className="flex flex-col gap-3">
+      <figure className="flex flex-col gap-3" data-edit={`photos.${Math.min(active, photos.length - 1)}`}>
         <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[2rem] bg-lilac/40 sm:aspect-[5/4] lg:aspect-[4/5]">
           <AnimatePresence initial={false}>
             <motion.img
-              key={current.name}
-              src={current.image}
+              key={`${active}-${current.image}`}
+              src={resolve(current.image)}
               alt={current.name}
               draggable={false}
               className="absolute inset-0 size-full object-cover"
@@ -52,7 +55,7 @@ export function HoverGallery({ photos, className }: { photos: Photo[]; className
         {photos.map((p, i) => {
           const on = i === active;
           return (
-            <li key={p.name} className="shrink-0">
+            <li key={`${i}-${p.name}`} className="shrink-0" data-edit={`photos.${i}`}>
               <button
                 type="button"
                 onPointerEnter={(e) => e.pointerType === "mouse" && setActive(i)}
