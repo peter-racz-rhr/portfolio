@@ -17,6 +17,21 @@ function config() {
   };
 }
 
+// Turn a GitHub error into something you can act on: which step failed, what
+// permission GitHub wanted, and which token Netlify is actually using (last 4
+// characters only), so a stale or wrong token is easy to spot.
+function explain(res, data, method, path) {
+  const { token, repo } = config();
+  const kind = token.startsWith("github_pat_") ? "fine-grained" : token.startsWith("ghp_") ? "classic" : "unknown type";
+  const which = `${kind} token …${token.slice(-4)}`;
+  const base = `GitHub said ${res.status} on ${method} ${path}: ${data.message ?? "request failed"}`;
+  const wanted = res.headers.get("x-accepted-github-permissions");
+  if (res.status === 401) return `${base}. The ${which} is invalid or expired: make a new one and redeploy.`;
+  if (res.status === 403 || res.status === 404)
+    return `${base}. The ${which} can't write to ${repo}${wanted ? ` (GitHub wants: ${wanted})` : ""}. Give it Contents: Read and write on ${repo}, or if it's a classic token tick "repo". Then save it as GITHUB_TOKEN in Netlify (all scopes and deploy contexts) and redeploy.`;
+  return base;
+}
+
 async function gh(path, init = {}) {
   const { token, repo } = config();
   const res = await fetch(`${API}/repos/${repo}${path}`, {
@@ -30,7 +45,7 @@ async function gh(path, init = {}) {
     },
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(`GitHub said ${res.status}: ${data.message ?? "request failed"}`);
+  if (!res.ok) throw new Error(explain(res, data, init.method ?? "GET", path));
   return data;
 }
 
