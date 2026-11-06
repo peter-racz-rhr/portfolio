@@ -240,19 +240,19 @@ const FloatingDockMobile = ({ items }: { items: DockItem[] }) => {
       }}
       animate={{ scale: drag !== null ? 1.04 : 1 }}
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
-      className={cn("relative flex touch-none items-center gap-1 rounded-3xl p-1.5 select-none md:hidden", shell)}
+      className={cn("relative flex touch-none items-center gap-2 rounded-[28px] p-2 select-none md:hidden", shell)}
     >
       <motion.span
         aria-hidden
         style={{ x, opacity: shown }}
         animate={{ scale: drag !== null ? 1.08 : 1 }}
         transition={{ type: "spring", stiffness: 500, damping: 30 }}
-        className="pointer-events-none absolute top-1.5 left-0 size-12 rounded-2xl bg-fg/10"
+        className="pointer-events-none absolute top-2 left-0 size-14 rounded-[20px] bg-fg/10"
       />
       {items.map((item, i) => {
         const lit = i === restIndex;
         const cls = cn(
-          "relative flex size-12 items-center justify-center rounded-2xl text-fg/60 transition-colors duration-150",
+          "relative flex size-14 items-center justify-center rounded-[20px] text-fg/60 transition-colors duration-150",
           drag === null && "active:scale-95",
           lit && "text-fg",
         );
@@ -270,7 +270,7 @@ const FloatingDockMobile = ({ items }: { items: DockItem[] }) => {
                 onClick={() => setOpen((o) => (o === item.title ? null : item.title))}
                 className={cls}
               >
-                <div className="size-5">{item.icon}</div>
+                <div className="size-6">{item.icon}</div>
               </button>
               <AnimatePresence>
                 {open === item.title && <DockMenu items={item.menu} onClose={() => setOpen(null)} align="right" />}
@@ -280,7 +280,7 @@ const FloatingDockMobile = ({ items }: { items: DockItem[] }) => {
         return (
           <div key={item.title} ref={setSlot}>
             <DockLink item={item} className={cls}>
-              <div className="size-5">{item.icon}</div>
+              <div className="size-6">{item.icon}</div>
             </DockLink>
           </div>
         );
