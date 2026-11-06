@@ -145,9 +145,9 @@ export function HoverGallery({ photos, className }: { photos: Photo[]; className
     <div
       ref={trackRef}
       className="relative"
-      style={pinned ? { height: `calc(100svh + ${(photos.length - 1) * STEP_SVH}svh)` } : undefined}
+      style={pinned ? { height: `calc(100dvh + ${(photos.length - 1) * STEP_SVH}svh)` } : undefined}
     >
-      <div className={cn(pinned && "sticky top-0 flex h-svh flex-col justify-center pb-24")}>{gallery}</div>
+      <div className={cn(pinned && "sticky top-0 flex h-dvh flex-col justify-center")}>{gallery}</div>
     </div>
   );
 }

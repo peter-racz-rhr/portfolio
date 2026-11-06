@@ -23,8 +23,16 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
     <>
       <IntroPreloader />
       {children}
-      <footer className="px-5 pt-10 pb-32 font-mono text-[11px] tracking-wider text-fg/40 uppercase sm:px-8">
-        © 2026 Peter Racz · interactions inspired by Skiper UI &amp; Aceternity UI
+      <footer className="flex flex-wrap items-baseline gap-x-6 gap-y-2 px-5 pt-10 pb-32 font-mono text-[11px] tracking-wider text-fg/40 uppercase sm:px-8">
+        <span>© 2026 Peter Racz · interactions inspired by Skiper UI &amp; Aceternity UI</span>
+        <span className="flex gap-4">
+          <a href="/privacy/" className="underline-offset-4 hover:text-plum hover:underline">
+            Privacy · Adatvédelem
+          </a>
+          <a href="/legal/" className="underline-offset-4 hover:text-plum hover:underline">
+            Legal · Impresszum
+          </a>
+        </span>
       </footer>
       <SiteDock />
       <CustomCursor />
