@@ -3,31 +3,86 @@
 // Picture show-off: a big photo next to a stacked list of names. Hover (or tap)
 // a name and the new photo wipes up over the old one. Started from Skiper UI's
 // skiper6 idea; the photo gets its own space so it never covers the text.
+//
+// On phones the gallery pins to the screen while you scroll: each stretch of
+// vertical scrolling flips to the next photo, and once the last one is showing
+// the pin lets go and the page carries on scrolling.
 
-import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useContent } from "@/components/content-provider";
 import type { Photo } from "@/lib/content";
 
 const EASE = [0.77, 0, 0.175, 1] as const;
+// How much vertical scroll (in % of the screen height) each photo gets on phones.
+const STEP_SVH = 55;
+
+function useIsMobile() {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const update = () => setMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return mobile;
+}
 
 export function HoverGallery({ photos, className }: { photos: Photo[]; className?: string }) {
-  const { resolve } = useContent();
+  const { resolve, editing } = useContent();
   const [active, setActive] = useState(0);
+  const isMobile = useIsMobile();
+  const pinned = isMobile && !editing && photos.length > 1;
+
+  const trackRef = useRef<HTMLDivElement>(null);
+  const pillsRef = useRef<HTMLUListElement>(null);
+  const { scrollYProgress } = useScroll({ target: trackRef, offset: ["start start", "end end"] });
+
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    if (!pinned) return;
+    const i = Math.min(photos.length - 1, Math.max(0, Math.floor(v * photos.length)));
+    setActive((prev) => (prev === i ? prev : i));
+  });
+
+  // Keep the active name pill in view in the sideways list.
+  useEffect(() => {
+    const list = pillsRef.current;
+    const pill = list?.children[active] as HTMLElement | undefined;
+    if (!list || !pill || !isMobile) return;
+    list.scrollTo({ left: pill.offsetLeft - (list.clientWidth - pill.offsetWidth) / 2, behavior: "smooth" });
+  }, [active, isMobile]);
+
+  // Tapping a name while pinned scrolls the page to that photo's stretch.
+  const pick = (i: number) => {
+    const track = trackRef.current;
+    if (!pinned || !track) return setActive(i);
+    const top = track.getBoundingClientRect().top + window.scrollY;
+    const travel = track.offsetHeight - window.innerHeight;
+    window.scrollTo({ top: top + travel * ((i + 0.5) / photos.length), behavior: "smooth" });
+  };
+
   const current = photos[active] ?? photos[0];
   if (!current) return null;
 
-  return (
+  const gallery = (
     <div
       className={cn(
         "mx-auto grid w-full max-w-6xl gap-8 px-5 sm:px-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-center lg:gap-14",
+        pinned && "gap-5",
         className,
+        pinned && "py-0",
       )}
     >
       {/* Photo */}
       <figure className="flex flex-col gap-3" data-edit={`photos.${Math.min(active, photos.length - 1)}`}>
-        <div className="skeleton relative aspect-[4/5] w-full overflow-hidden rounded-3xl sm:aspect-[5/4] lg:aspect-[4/5]">
+        <div
+          className={cn(
+            "skeleton relative aspect-[4/5] w-full overflow-hidden rounded-3xl sm:aspect-[5/4] lg:aspect-[4/5]",
+            pinned && "max-h-[58svh]",
+          )}
+        >
           <AnimatePresence initial={false}>
             <motion.img
               key={`${active}-${current.image}`}
@@ -51,7 +106,7 @@ export function HoverGallery({ photos, className }: { photos: Photo[]; className
       </figure>
 
       {/* Names */}
-      <ul className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] lg:flex-col lg:gap-0 lg:overflow-visible lg:pb-0">
+      <ul ref={pillsRef} className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] lg:flex-col lg:gap-0 lg:overflow-visible lg:pb-0">
         {photos.map((p, i) => {
           const on = i === active;
           return (
@@ -59,8 +114,8 @@ export function HoverGallery({ photos, className }: { photos: Photo[]; className
               <button
                 type="button"
                 onPointerEnter={(e) => e.pointerType === "mouse" && setActive(i)}
-                onFocus={() => setActive(i)}
-                onClick={() => setActive(i)}
+                onFocus={() => !pinned && setActive(i)}
+                onClick={() => pick(i)}
                 aria-pressed={on}
                 className={cn(
                   "group flex items-center gap-3 rounded-full border px-4 py-2 text-left transition-colors duration-200 lg:w-full lg:rounded-none lg:border-0 lg:border-b lg:border-fg/10 lg:px-0 lg:py-3",
@@ -81,6 +136,18 @@ export function HoverGallery({ photos, className }: { photos: Photo[]; className
           );
         })}
       </ul>
+    </div>
+  );
+
+  // The track is always rendered so the scroll tracker has an element from the
+  // first render; it only gets its extra height and sticky pin on phones.
+  return (
+    <div
+      ref={trackRef}
+      className="relative"
+      style={pinned ? { height: `calc(100svh + ${(photos.length - 1) * STEP_SVH}svh)` } : undefined}
+    >
+      <div className={cn(pinned && "sticky top-0 flex h-svh flex-col justify-center pb-24")}>{gallery}</div>
     </div>
   );
 }
