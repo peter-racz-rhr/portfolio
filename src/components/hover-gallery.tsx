@@ -42,7 +42,8 @@ export function HoverGallery({ photos, className }: { photos: Photo[]; className
 
   useMotionValueEvent(scrollYProgress, "change", (v) => {
     if (!pinned) return;
-    const i = Math.min(photos.length - 1, Math.max(0, Math.floor(v * photos.length)));
+    // Each photo owns the stretch around its stop point (see the snap points below).
+    const i = Math.min(photos.length - 1, Math.max(0, Math.round(v * (photos.length - 1))));
     setActive((prev) => (prev === i ? prev : i));
   });
 
@@ -60,8 +61,19 @@ export function HoverGallery({ photos, className }: { photos: Photo[]; className
     if (!pinned || !track) return setActive(i);
     const top = track.getBoundingClientRect().top + window.scrollY;
     const travel = track.offsetHeight - window.innerHeight;
-    window.scrollTo({ top: top + travel * ((i + 0.5) / photos.length), behavior: "smooth" });
+    window.scrollTo({ top: top + travel * (i / (photos.length - 1)), behavior: "smooth" });
   };
+
+  // Let the page snap to the photos' stop points while the gallery is pinned.
+  // Proximity (not mandatory) so the rest of the page scrolls freely.
+  useEffect(() => {
+    if (!pinned) return;
+    const root = document.documentElement;
+    root.style.scrollSnapType = "y proximity";
+    return () => {
+      root.style.scrollSnapType = "";
+    };
+  }, [pinned]);
 
   const current = photos[active] ?? photos[0];
   if (!current) return null;
@@ -147,6 +159,17 @@ export function HoverGallery({ photos, className }: { photos: Photo[]; className
       className="relative"
       style={pinned ? { height: `calc(100dvh + ${(photos.length - 1) * STEP_SVH}svh)` } : undefined}
     >
+      {/* One stop point per photo. snap-stop "always" means a fast swipe can't fly
+          past a photo: every swipe lands on the next one and rests there. */}
+      {pinned &&
+        photos.map((_, i) => (
+          <div
+            key={i}
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 h-px snap-start snap-always"
+            style={{ top: `${i * STEP_SVH}svh` }}
+          />
+        ))}
       <div className={cn(pinned && "sticky top-0 flex h-dvh flex-col justify-center")}>{gallery}</div>
     </div>
   );
