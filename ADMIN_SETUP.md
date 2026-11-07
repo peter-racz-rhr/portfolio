@@ -59,3 +59,17 @@ GitHub, and the change is live after Netlify finishes building.
   to the same repo.
 - In local development (`npm run dev`) the editor opens without a password so you can try
   it, but Publish only works on Netlify.
+
+## If Publish doesn't work: Download changes
+
+The **Download changes** button (next to Publish, and on the red bar when publishing
+fails) saves one file, `portfolio-changes-<date>.json`, to your Downloads. It holds all
+your edits plus any new pictures. Send it to Claude (or tell Claude where it is), who runs:
+
+```bash
+node scripts/apply-export.mjs path/to/portfolio-changes-<date>.json
+```
+
+That checks the file, writes `src/content/site.json` and the pictures into `public/uploads/`,
+and prints what changed. Then it gets committed and pushed like any other change, and
+Netlify updates the site. Your edits also stay in the editor as a draft until then.

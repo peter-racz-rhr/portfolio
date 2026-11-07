@@ -11,6 +11,7 @@ import {
   IconArrowDown,
   IconArrowUp,
   IconChevronRight,
+  IconDownload,
   IconExternalLink,
   IconEye,
   IconEyeOff,
@@ -19,6 +20,7 @@ import {
   IconSettings,
 } from "@tabler/icons-react";
 import { LOCAL_DEV, logout, publish, uploadImage } from "@/admin/api";
+import { downloadChanges } from "@/admin/export";
 import { Inspector } from "@/admin/inspector";
 import { useEditor, type Editor as EditorState } from "@/admin/use-editor";
 import { ContentProvider } from "@/components/content-provider";
@@ -45,7 +47,8 @@ type PublishState =
   | { kind: "idle" }
   | { kind: "working"; step: string }
   | { kind: "done"; url: string }
-  | { kind: "error"; message: string };
+  | { kind: "error"; message: string }
+  | { kind: "downloaded"; name: string };
 
 export function Editor({ onLoggedOut }: { onLoggedOut: () => void }) {
   const editor = useEditor();
@@ -127,6 +130,11 @@ export function Editor({ onLoggedOut }: { onLoggedOut: () => void }) {
     }
   };
 
+  const onDownload = () => {
+    const name = downloadChanges(editor.content, editor.uploads);
+    setPublishState({ kind: "downloaded", name });
+  };
+
   const current = PAGES.find((p) => p.id === page)!;
 
   return (
@@ -172,6 +180,15 @@ export function Editor({ onLoggedOut }: { onLoggedOut: () => void }) {
         </a>
         <button
           type="button"
+          disabled={!editor.dirty}
+          onClick={onDownload}
+          title="Save your changes as a file you can send instead of publishing"
+          className="flex items-center gap-1.5 rounded-lg border border-fg/15 px-3 py-2 text-sm transition-colors duration-150 hover:bg-fg/5 disabled:opacity-40"
+        >
+          <IconDownload className="size-4" /> <span className="hidden sm:inline">Download changes</span>
+        </button>
+        <button
+          type="button"
           disabled={!editor.dirty || publishState.kind === "working"}
           onClick={onPublish}
           className="rounded-lg bg-plum px-4 py-2 text-sm font-semibold text-canvas transition-transform duration-150 ease-out active:scale-[0.97] disabled:opacity-40"
@@ -191,7 +208,12 @@ export function Editor({ onLoggedOut }: { onLoggedOut: () => void }) {
         )}
       </header>
 
-      <Banner editor={editor} publishState={publishState} onDismiss={() => setPublishState({ kind: "idle" })} />
+      <Banner
+        editor={editor}
+        publishState={publishState}
+        onDownload={onDownload}
+        onDismiss={() => setPublishState({ kind: "idle" })}
+      />
 
       <div className="flex min-h-0 flex-1">
         {/* Sidebar */}
@@ -268,10 +290,12 @@ export function Editor({ onLoggedOut }: { onLoggedOut: () => void }) {
 function Banner({
   editor,
   publishState,
+  onDownload,
   onDismiss,
 }: {
   editor: EditorState;
   publishState: PublishState;
+  onDownload: () => void;
   onDismiss: () => void;
 }) {
   const base = "flex items-center gap-3 px-4 py-2 text-sm";
@@ -290,10 +314,22 @@ function Banner({
     );
   if (publishState.kind === "error")
     return (
-      <div className={cn(base, "bg-red-100 text-red-950")}>
-        {publishState.message}
-        <button type="button" onClick={onDismiss} className="ml-auto text-xs underline">
+      <div className={cn(base, "flex-wrap bg-red-100 text-red-950")}>
+        <span className="min-w-0 flex-1">{publishState.message}</span>
+        <button type="button" onClick={onDownload} className="rounded-lg bg-red-950 px-3 py-1.5 text-xs font-semibold text-red-50">
+          Download changes instead
+        </button>
+        <button type="button" onClick={onDismiss} className="text-xs underline">
           Dismiss
+        </button>
+      </div>
+    );
+  if (publishState.kind === "downloaded")
+    return (
+      <div className={cn(base, "bg-emerald-100 text-emerald-950")}>
+        Saved {publishState.name} to your Downloads. Send it to Claude to put it on the site. Your changes also stay here as a draft.
+        <button type="button" onClick={onDismiss} className="ml-auto text-xs underline">
+          OK
         </button>
       </div>
     );
