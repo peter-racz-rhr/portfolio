@@ -104,35 +104,41 @@ export function AboutView() {
         <PageHeader eyebrow={<T path="about.eyebrow" />} titlePath="about.title" />
       </div>
 
-      <DraggableCardContainer className="relative mx-auto flex h-[44rem] w-full max-w-6xl items-center justify-center overflow-clip [--card-w:11rem] sm:h-[40rem] sm:[--card-w:15rem]">
-        <T
-          path="about.dragHint"
-          as="p"
-          multiline
-          className="absolute top-1/2 mx-auto block max-w-sm -translate-y-1/2 px-6 text-center font-sans text-2xl font-semibold tracking-tight text-fg/30 sm:text-3xl"
-        />
-        {favPics.map((pic, i) => (
-          <div
-            key={`${i}-${pic.title}`}
-            data-edit={`favPics.${i}`}
-            className="absolute"
-            style={{
-              left: `min(${pic.x}%, calc(100% - var(--card-w)))`,
-              top: `${pic.y}rem`,
-              rotate: `${pic.rotate}deg`,
-            }}
-          >
-            <DraggableCardBody className="min-h-0 w-[var(--card-w)] cursor-grab rounded-3xl bg-white p-3 text-fg shadow-xl">
-              <img
-                src={resolve(pic.image)}
-                alt={pic.title}
-                draggable={false}
-                className="skeleton pointer-events-none relative z-10 aspect-[4/5] w-full rounded-2xl object-cover"
-              />
-              <h3 className="mt-3 text-center font-display text-sm uppercase">{pic.title}</h3>
-            </DraggableCardBody>
-          </div>
-        ))}
+      {/* The drag area spans the whole window (cards are only cut off at the screen
+          edge) with room above and below for tilted corners; the cards themselves
+          are laid out inside the usual content width. */}
+      <DraggableCardContainer className="relative w-full overflow-x-clip py-12 [--card-w:11rem] sm:py-16 sm:[--card-w:15rem]">
+        <div className="relative mx-auto flex h-[44rem] w-full max-w-6xl items-center justify-center sm:h-[40rem]">
+          <T
+            path="about.dragHint"
+            as="p"
+            multiline
+            className="absolute top-1/2 mx-auto block max-w-sm -translate-y-1/2 px-6 text-center font-sans text-2xl font-semibold tracking-tight text-fg/30 sm:text-3xl"
+          />
+          {favPics.map((pic, i) => (
+            <div
+              key={`${i}-${pic.title}`}
+              data-edit={`favPics.${i}`}
+              className="absolute"
+              style={{
+                // keep a margin on both sides so tilted corners stay on screen
+                left: `clamp(1rem, ${pic.x}%, calc(100% - var(--card-w) - 1.25rem))`,
+                top: `${pic.y}rem`,
+                rotate: `${pic.rotate}deg`,
+              }}
+            >
+              <DraggableCardBody className="min-h-0 w-[var(--card-w)] cursor-grab rounded-3xl bg-white p-3 text-fg shadow-xl">
+                <img
+                  src={resolve(pic.image)}
+                  alt={pic.title}
+                  draggable={false}
+                  className="skeleton pointer-events-none relative z-10 aspect-[4/5] w-full rounded-2xl object-cover"
+                />
+                <h3 className="mt-3 text-center font-display text-sm uppercase">{pic.title}</h3>
+              </DraggableCardBody>
+            </div>
+          ))}
+        </div>
       </DraggableCardContainer>
 
       <section className="mx-auto max-w-6xl px-5 py-32 sm:px-8">
