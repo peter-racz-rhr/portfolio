@@ -4,9 +4,10 @@
 // a name and the new photo wipes up over the old one. Started from Skiper UI's
 // skiper6 idea; the photo gets its own space so it never covers the text.
 //
-// On phones the gallery pins to the screen while you scroll: each stretch of
-// vertical scrolling flips to the next photo, and once the last one is showing
-// the pin lets go and the page carries on scrolling.
+// On every screen size the gallery pins to the screen while you scroll: each
+// stretch of vertical scrolling flips to the next photo, and once the last one
+// is showing the pin lets go and the page carries on scrolling. Clicking or
+// tapping a name jumps to that photo. (Not pinned inside the admin editor.)
 
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "motion/react";
 import { useEffect, useRef, useState } from "react";
@@ -15,7 +16,7 @@ import { useContent } from "@/components/content-provider";
 import type { Photo } from "@/lib/content";
 
 const EASE = [0.77, 0, 0.175, 1] as const;
-// How much vertical scroll (in % of the screen height) each photo gets on phones.
+// How much vertical scroll (in % of the screen height) each photo gets.
 const STEP_SVH = 55;
 
 function useIsMobile() {
@@ -34,7 +35,7 @@ export function HoverGallery({ photos, className }: { photos: Photo[]; className
   const { resolve, editing } = useContent();
   const [active, setActive] = useState(0);
   const isMobile = useIsMobile();
-  const pinned = isMobile && !editing && photos.length > 1;
+  const pinned = !editing && photos.length > 1;
 
   const trackRef = useRef<HTMLDivElement>(null);
   const pillsRef = useRef<HTMLUListElement>(null);
@@ -92,7 +93,7 @@ export function HoverGallery({ photos, className }: { photos: Photo[]; className
         <div
           className={cn(
             "skeleton relative aspect-[4/5] w-full overflow-hidden rounded-3xl sm:aspect-[5/4] lg:aspect-[4/5]",
-            pinned && "max-h-[58svh]",
+            pinned && "max-h-[58svh] lg:max-h-[78svh]",
           )}
         >
           <AnimatePresence initial={false}>
@@ -125,7 +126,8 @@ export function HoverGallery({ photos, className }: { photos: Photo[]; className
             <li key={`${i}-${p.name}`} className="shrink-0" data-edit={`photos.${i}`}>
               <button
                 type="button"
-                onPointerEnter={(e) => e.pointerType === "mouse" && setActive(i)}
+                // while pinned, scrolling picks the photo; hovering would fight it
+                onPointerEnter={(e) => !pinned && e.pointerType === "mouse" && setActive(i)}
                 onFocus={() => !pinned && setActive(i)}
                 onClick={() => pick(i)}
                 aria-pressed={on}
@@ -152,7 +154,7 @@ export function HoverGallery({ photos, className }: { photos: Photo[]; className
   );
 
   // The track is always rendered so the scroll tracker has an element from the
-  // first render; it only gets its extra height and sticky pin on phones.
+  // first render; it only gets its extra height and sticky pin when pinned.
   return (
     <div
       ref={trackRef}
