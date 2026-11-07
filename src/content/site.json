@@ -9,7 +9,7 @@
     "github": "https://github.com/peter-racz-rhr",
     "instagram": "https://instagram.com/racz_peter0_0",
     "kofi": "https://ko-fi.com/peteracz",
-    "spotify": "https://open.spotify.com/PETIKEEEE"
+    "spotify": "https://open.spotify.com/"
   },
   "hero": {
     "line1": "Peter",
@@ -45,8 +45,8 @@
   "contact": {
     "eyebrow": "Got an idea?",
     "title": "Hali",
-    "titleAccent": "hi",
-    "body": "ha tetszenek a kütyücskéim és szeretnél egyött dologzni v csak beköszönni, csak nyugodtan! Pusz"
+    "titleAccent": "",
+    "body": "ha tetszenek a kütyücskéim és szeretnél együtt dolgozni v csak beköszönni, csak nyugodtan! Pusz"
   },
   "projectsPage": {
     "title": "Projects",
@@ -59,10 +59,10 @@
     "eyebrow": "hi, it's me",
     "title": "About",
     "dragHint": "These are a few of my favourite things. Drag them around.",
-    "bio": "Szia, Peti vagyok, gimibe járok és appokat meg oldalakat csinalok. Pusz",
+    "bio": "Szia, Peti vagyok, gimibe járok és appokat meg oldalakat csinálok. Pusz",
     "bioHighlight": [
-      "Budapest",
-      "TypeScript"
+      "Peti",
+      "appokat"
     ],
     "contactLabel": "Say hi",
     "instagramHandle": "@lorem.ipsum",
@@ -102,18 +102,18 @@
       "repo": "https://github.com/peter-racz-rhr/magyarotyesz-demo"
     },
     {
-      "slug": "https://github.com/peter-racz-rhr/mint_desktop_apps",
-      "name": "MintMacska ",
+      "slug": "mintmacska",
+      "name": "MintMacska",
       "blurb": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur.",
       "description": "Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt.",
       "stack": [
-        "TypeScript"
+        "Python"
       ],
       "status": "shipped",
       "year": "2026",
       "color": "#d9c6d5",
       "icon": "sun",
-      "repo": "https://github.com/peter-racz-rhr/naplemente"
+      "repo": "https://github.com/peter-racz-rhr/mint_desktop_apps"
     },
     {
       "slug": "german-app",
@@ -128,20 +128,6 @@
       "color": "#7c4a79",
       "icon": "book",
       "repo": "https://github.com/peter-racz-rhr/german-app"
-    },
-    {
-      "slug": "mint_desktop_apps",
-      "name": "mint desktop apps",
-      "blurb": "Temporibus autem quibusdam et aut officiis debitis.",
-      "description": "Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est.",
-      "stack": [
-        "Python"
-      ],
-      "status": "shipped",
-      "year": "2026",
-      "color": "#ebdfe7",
-      "icon": "terminal",
-      "repo": "https://github.com/peter-racz-rhr/mint_desktop_apps"
     }
   ],
   "photos": [

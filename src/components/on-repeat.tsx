@@ -33,7 +33,7 @@ type Track = {
 };
 
 type LiveTrack = Omit<Track, "color" | "cover"> & { cover: string | null; isPlaying?: boolean; progressMs?: number };
-type SpotifyResponse = { tracks: LiveTrack[]; nowPlaying: LiveTrack | null; updatedAt?: string };
+type SpotifyResponse = { tracks: LiveTrack[]; nowPlaying: LiveTrack | null; profileUrl?: string | null; updatedAt?: string };
 
 const REFRESH_MS = 30_000;
 
@@ -57,6 +57,8 @@ function fromSpotify(data: SpotifyResponse, fallbackCover: string): Track[] {
 export function OnRepeat() {
   const { content, editing, resolve } = useContent();
   const [liveList, setLiveList] = useState<Track[] | null>(null);
+  // the real profile link from Spotify beats whatever is typed in the site settings
+  const [profileUrl, setProfileUrl] = useState<string | null>(null);
   // Public site waits (briefly) for Spotify before showing anything, so the
   // hand-picked songs don't flash up and get swapped out.
   const [loading, setLoading] = useState(!editing);
@@ -82,6 +84,7 @@ export function OnRepeat() {
       .then((data) => {
         if (!data.tracks?.length) return;
         setLiveList(fromSpotify(data, fallbackCover));
+        if (data.profileUrl) setProfileUrl(data.profileUrl);
         // first load, or the playing song was showing: show what's playing now
         setActive((a) => (refresh === 0 || a === 0 ? 0 : a));
       })
@@ -168,7 +171,7 @@ export function OnRepeat() {
               {liveLabel ?? <T path="music.eyebrow" />}
             </p>
             <a
-              href={content.site.spotify}
+              href={(!editing && profileUrl) || content.site.spotify}
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-1.5 rounded-full bg-canvas/10 px-3 py-1.5 text-xs transition-colors duration-150 hover:bg-canvas/20"

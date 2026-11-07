@@ -34,21 +34,25 @@ export const useContent = () => useContext(ContentContext);
 /**
  * Text that becomes editable in place inside the admin editor.
  * Enter finishes a single-line field; multiline fields keep line breaks.
+ * `optional` texts may be cleared: then nothing shows on the site, and the
+ * editor shows a faint placeholder so it can still be clicked.
  */
 export function T({
   path,
   as: Tag = "span",
   className,
   multiline = false,
+  optional = false,
 }: {
   path: string;
   as?: React.ElementType;
   className?: string;
   multiline?: boolean;
+  optional?: boolean;
 }) {
   const { content, editing, set } = useContent();
   const value = String(getAt(content, path) ?? "");
-  if (!editing) return <Tag className={className}>{value}</Tag>;
+  if (!editing) return optional && !value ? null : <Tag className={className}>{value}</Tag>;
   return (
     <Tag
       key={value}
@@ -56,6 +60,7 @@ export function T({
       suppressContentEditableWarning
       spellCheck
       data-edit-text={path}
+      data-placeholder={optional ? "(optional)" : undefined}
       className={cn(className, "edit-text")}
       onKeyDown={(e: React.KeyboardEvent<HTMLElement>) => {
         if (e.key === "Enter" && !multiline) {
@@ -69,7 +74,8 @@ export function T({
       }}
       onBlur={(e: React.FocusEvent<HTMLElement>) => {
         const next = (e.currentTarget.textContent ?? "").replace(/ /g, " ");
-        if (next !== value) set(path, next.trim() || value);
+        // required texts can't be emptied by accident; optional ones can
+        if (next !== value) set(path, optional ? next.trim() : next.trim() || value);
       }}
     >
       {value}

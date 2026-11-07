@@ -18,7 +18,7 @@ export function SayHi() {
       <div className="rounded-3xl bg-fg px-6 py-12 text-canvas sm:px-12 sm:py-16">
         <T path="contact.eyebrow" as="p" className="block font-mono text-xs tracking-widest text-lilac uppercase" />
         <h2 className="mt-4 font-display text-[clamp(2.5rem,9vw,7.5rem)] leading-[0.9] uppercase">
-          <T path="contact.title" /> <T path="contact.titleAccent" className="text-lilac" />
+          <T path="contact.title" /> <T path="contact.titleAccent" optional className="text-lilac" />
         </h2>
         <T path="contact.body" as="p" multiline className="mt-6 block max-w-md text-lg opacity-75" />
         <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" data-edit="site">

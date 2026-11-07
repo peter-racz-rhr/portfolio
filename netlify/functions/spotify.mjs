@@ -43,9 +43,10 @@ export default async () => {
     const token = await accessToken();
     const auth = { headers: { Authorization: `Bearer ${token}` } };
 
-    const [topRes, nowRes] = await Promise.all([
+    const [topRes, nowRes, meRes] = await Promise.all([
       fetch(`${API}/me/top/tracks?time_range=short_term&limit=6`, auth),
       fetch(`${API}/me/player/currently-playing`, auth),
+      fetch(`${API}/me`, auth),
     ]);
     if (!topRes.ok) throw new Error(`Top tracks request failed (${topRes.status})`);
 
@@ -61,7 +62,8 @@ export default async () => {
     }
 
     return Response.json(
-      { tracks, nowPlaying, updatedAt: new Date().toISOString() },
+      // your public profile link, so the site's Spotify button always points to you
+      { tracks, nowPlaying, profileUrl: meRes.ok ? ((await meRes.json()).external_urls?.spotify ?? null) : null, updatedAt: new Date().toISOString() },
       {
         headers: {
           // browsers re-ask every visit; Netlify's CDN reuses the answer for 15 seconds
