@@ -2,18 +2,18 @@
   "site": {
     "name": "Peter Racz",
     "handle": "peter-racz-rhr",
-    "tagline": "I build small apps, break them, and fix them again.",
-    "status": "building ante-app",
+    "tagline": "pusz.",
+    "status": "73 as pulzus",
     "heroImage": "/hero.jpg",
     "email": "peter.racz.rhr@gmail.com",
     "github": "https://github.com/peter-racz-rhr",
-    "instagram": "https://instagram.com/",
-    "kofi": "https://ko-fi.com/",
-    "spotify": "https://open.spotify.com/"
+    "instagram": "https://instagram.com/racz_peter0_0",
+    "kofi": "https://ko-fi.com/peteracz",
+    "spotify": "https://open.spotify.com/PETIKEEEE"
   },
   "hero": {
     "line1": "Peter",
-    "line2": "Racz"
+    "line2": "ke"
   },
   "home": {
     "sections": [
@@ -39,14 +39,14 @@
     "projectsCount": 3
   },
   "music": {
-    "title": "On repeat",
+    "title": "Fültorna",
     "eyebrow": "What I listen to"
   },
   "contact": {
     "eyebrow": "Got an idea?",
-    "title": "Say",
+    "title": "Hali",
     "titleAccent": "hi",
-    "body": "Lorem ipsum dolor sit amet. Want to build something together, or just talk apps? Drop me a line."
+    "body": "ha tetszenek a kütyücskéim és szeretnél egyött dologzni v csak beköszönni, csak nyugodtan! Pusz"
   },
   "projectsPage": {
     "title": "Projects",
@@ -59,7 +59,7 @@
     "eyebrow": "hi, it's me",
     "title": "About",
     "dragHint": "These are a few of my favourite things. Drag them around.",
-    "bio": "Lorem ipsum dolor sit amet, I live in Budapest and write a lot of TypeScript. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua, ut enim ad minim veniam.",
+    "bio": "Szia, Peti vagyok, gimibe járok és appokat meg oldalakat csinalok. Pusz",
     "bioHighlight": [
       "Budapest",
       "TypeScript"
@@ -102,8 +102,8 @@
       "repo": "https://github.com/peter-racz-rhr/magyarotyesz-demo"
     },
     {
-      "slug": "naplemente",
-      "name": "naplemente",
+      "slug": "https://github.com/peter-racz-rhr/mint_desktop_apps",
+      "name": "MintMacska ",
       "blurb": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur.",
       "description": "Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt.",
       "stack": [
@@ -142,21 +142,6 @@
       "color": "#ebdfe7",
       "icon": "terminal",
       "repo": "https://github.com/peter-racz-rhr/mint_desktop_apps"
-    },
-    {
-      "slug": "lwk",
-      "name": "lwk",
-      "blurb": "Itaque earum rerum hic tenetur a sapiente delectus.",
-      "description": "Ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat. Similique sunt in culpa qui officia deserunt.",
-      "stack": [
-        "HTML",
-        "CSS"
-      ],
-      "status": "building",
-      "year": "2026",
-      "color": "#a9789f",
-      "icon": "globe",
-      "repo": "https://github.com/peter-racz-rhr/lwk"
     }
   ],
   "photos": [
