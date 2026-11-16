@@ -1,10 +1,14 @@
-// GET /api/spotify — your top tracks from the last ~4 weeks plus what's playing now.
+// GET /api/spotify — what's playing now, the songs played just before it, your top
+// tracks from the last ~4 weeks, and your profile link.
 // Needs three environment variables in Netlify (Site configuration → Environment variables):
 //   SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN
 // See SPOTIFY_SETUP.md for how to get them. The secret never reaches the browser.
+// "Played before this" needs the user-read-recently-played permission; tokens made
+// before it was added simply get `recent: null`, and the site shows top tracks instead.
 
 const TOKEN_URL = "https://accounts.spotify.com/api/token";
 const API = "https://api.spotify.com/v1";
+const RECENT_COUNT = 4;
 
 async function accessToken() {
   const id = process.env.SPOTIFY_CLIENT_ID;
@@ -38,14 +42,29 @@ function toTrack(t) {
   };
 }
 
+/** Newest first, without the song playing now and without repeats. */
+function previousSongs(items, playingUrl) {
+  const seen = new Set(playingUrl ? [playingUrl] : []);
+  const out = [];
+  for (const { track, played_at } of items) {
+    const t = toTrack(track);
+    if (seen.has(t.url)) continue;
+    seen.add(t.url);
+    out.push({ ...t, playedAt: played_at });
+    if (out.length === RECENT_COUNT) break;
+  }
+  return out;
+}
+
 export default async () => {
   try {
     const token = await accessToken();
     const auth = { headers: { Authorization: `Bearer ${token}` } };
 
-    const [topRes, nowRes, meRes] = await Promise.all([
+    const [topRes, nowRes, recentRes, meRes] = await Promise.all([
       fetch(`${API}/me/top/tracks?time_range=short_term&limit=6`, auth),
       fetch(`${API}/me/player/currently-playing`, auth),
+      fetch(`${API}/me/player/recently-played?limit=10`, auth),
       fetch(`${API}/me`, auth),
     ]);
     if (!topRes.ok) throw new Error(`Top tracks request failed (${topRes.status})`);
@@ -61,9 +80,18 @@ export default async () => {
       }
     }
 
+    // 403 = the token doesn't have the recently-played permission yet
+    const recent = recentRes.ok ? previousSongs((await recentRes.json()).items ?? [], nowPlaying?.url) : null;
+
     return Response.json(
-      // your public profile link, so the site's Spotify button always points to you
-      { tracks, nowPlaying, profileUrl: meRes.ok ? ((await meRes.json()).external_urls?.spotify ?? null) : null, updatedAt: new Date().toISOString() },
+      {
+        tracks,
+        nowPlaying,
+        recent,
+        // your public profile link, so the site's Spotify button always points to you
+        profileUrl: meRes.ok ? ((await meRes.json()).external_urls?.spotify ?? null) : null,
+        updatedAt: new Date().toISOString(),
+      },
       {
         headers: {
           // browsers re-ask every visit; Netlify's CDN reuses the answer for 15 seconds

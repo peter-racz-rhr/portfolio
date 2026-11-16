@@ -67,3 +67,11 @@ Spotify can't be reached, and in local development.
   4 weeks; `medium_term` is about 6 months, `long_term` about a year.
 - If you ever reset the client secret in the Spotify dashboard, run step 2 again and update
   the Netlify variables.
+
+## Updating the permissions
+
+The "played before this" list (the songs you played right before the current one) needs
+Spotify's recently-played permission. Tokens made before it was added keep working, but
+show your top tracks there instead. To turn it on, run step 2 again (the helper now asks
+for that permission too), then replace `SPOTIFY_REFRESH_TOKEN` in Netlify with the new
+token and trigger a deploy.

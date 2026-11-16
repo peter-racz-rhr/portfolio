@@ -42,7 +42,7 @@ if (!id || !secret) {
 
 const PORT = 8888;
 const REDIRECT = `http://127.0.0.1:${PORT}/callback`;
-const SCOPES = "user-top-read user-read-currently-playing";
+const SCOPES = "user-top-read user-read-currently-playing user-read-recently-played";
 const state = randomBytes(12).toString("hex");
 
 const authUrl =

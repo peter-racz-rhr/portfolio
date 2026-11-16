@@ -30,16 +30,27 @@ type Track = {
   durationMs?: number;
   /** wall-clock time (ms) the playing song started, for the live progress bar */
   startedAt?: number;
+  /** when a "played before this" song was played (ISO time) */
+  playedAt?: string;
 };
 
 type LiveTrack = Omit<Track, "color" | "cover"> & { cover: string | null; isPlaying?: boolean; progressMs?: number };
-type SpotifyResponse = { tracks: LiveTrack[]; nowPlaying: LiveTrack | null; profileUrl?: string | null; updatedAt?: string };
+type SpotifyResponse = {
+  tracks: LiveTrack[];
+  nowPlaying: LiveTrack | null;
+  /** songs played right before the current one, newest first (null without that permission) */
+  recent?: LiveTrack[] | null;
+  profileUrl?: string | null;
+  updatedAt?: string;
+};
 
 const REFRESH_MS = 30_000;
 
 function fromSpotify(data: SpotifyResponse, fallbackCover: string): Track[] {
-  const list: LiveTrack[] = [...data.tracks];
   const now = data.nowPlaying?.isPlaying ? data.nowPlaying : null;
+  // listening: the song playing now plus the ones played just before it;
+  // otherwise (or without the history permission): top tracks
+  const list: LiveTrack[] = now && data.recent?.length ? [...data.recent] : [...data.tracks];
   if (now) {
     const i = list.findIndex((t) => t.url === now.url);
     if (i >= 0) list.splice(i, 1);
@@ -186,6 +197,9 @@ export function OnRepeat() {
               const on = i === active;
               return (
                 <li key={`${i}-${tr.title}`} className="relative" data-edit={liveList && !editing ? undefined : `tracks.${i}`}>
+                  {i === 1 && tr.playedAt && (
+                    <p className="px-3 pt-3 pb-1 font-mono text-[10px] tracking-widest uppercase opacity-50">Played before this</p>
+                  )}
                   <button
                     type="button"
                     onPointerEnter={(e) => e.pointerType === "mouse" && setActive(i)}
@@ -214,7 +228,9 @@ export function OnRepeat() {
                         {tr.artist} · {tr.album}
                       </span>
                     </span>
-                    <span className="font-mono text-xs tabular-nums opacity-60">{tr.live ? "live" : tr.length}</span>
+                    <span className="font-mono text-xs tabular-nums opacity-60">
+                      {tr.live ? "live" : tr.playedAt ? ago(tr.playedAt) : tr.length}
+                    </span>
                   </button>
                 </li>
               );
@@ -250,6 +266,15 @@ export function OnRepeat() {
       </motion.div>
     </section>
   );
+}
+
+/** "just now", "12m ago", "3h ago", "2d ago" */
+function ago(iso: string) {
+  const min = Math.floor((Date.now() - Date.parse(iso)) / 60000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min}m ago`;
+  if (min < 60 * 24) return `${Math.floor(min / 60)}h ago`;
+  return `${Math.floor(min / 60 / 24)}d ago`;
 }
 
 const clock = (ms: number) => `${Math.floor(ms / 60000)}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, "0")}`;
